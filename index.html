@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Heights Plan Builder Demo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+:root{--bg:#FFFFFF;--ink:#243038;--ink2:#4F5D69;--muted:#7A8792;--line:#E3E9EE;--soft:#F3F7FA;--brand:#1E9E88;--brand-ink:#FFFFFF;--brand-soft:#E4F6F1;--sun:#FFF3CF;--sun-ink:#8A6300;--rose:#FDE7E7;--rose-ink:#B03A3A;--ok:#2F8F5B;--r:14px;--font:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 var(--font);font-weight:500}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;text-wrap:balance}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px 80px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.brand{font-weight:800;font-size:22px;color:var(--brand)}
+.brand small{display:block;font-size:14px;color:var(--muted);font-weight:600}
+.stepct{font-weight:700;color:var(--muted);font-size:15px}
+.bar{height:10px;background:var(--soft);border-radius:99px;overflow:hidden;margin-bottom:34px}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:99px;transition:width .25s}
+.step{display:none}.step.on{display:block}
+h1{font-size:38px;font-weight:800;line-height:1.15;margin-bottom:8px}
+.lead{font-size:19px;color:var(--ink2);margin:0 0 26px}
+h2{font-size:22px;font-weight:800;margin:26px 0 10px}
+.src{font-size:14px;color:var(--muted);margin:-4px 0 12px;font-weight:600}
+.f{margin-bottom:18px}
+.f label{display:block;font-weight:800;font-size:17px;margin-bottom:8px}
+.f input,.f select,.f textarea{width:100%;border:2px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:18px;background:#fff}
+.f textarea{min-height:150px;resize:vertical;line-height:1.5}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+.card{border:2px solid var(--line);border-radius:var(--r);padding:22px;cursor:pointer;background:#fff;text-align:left}
+.card:hover{border-color:var(--brand)}
+.card.on{border-color:var(--brand);background:var(--brand-soft)}
+.card b{display:block;font-size:22px;font-weight:800;margin-bottom:4px}
+.card span{color:var(--ink2);font-size:16px}
+.chips{display:flex;flex-wrap:wrap;gap:10px}
+.chip{border:2px solid var(--line);border-radius:99px;padding:8px 16px;font-weight:700;background:#fff;cursor:pointer;font-size:16px}
+.chip.on{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.chip.x{background:var(--soft);border-color:var(--soft)}
+.checks{display:flex;flex-direction:column;gap:10px}
+.checks label{display:flex;gap:14px;align-items:flex-start;border:2px solid var(--line);border-radius:var(--r);padding:14px 16px;cursor:pointer;font-size:17px;background:#fff}
+.checks label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}
+.checks input{width:22px;height:22px;margin-top:3px;accent-color:var(--brand);flex:none}
+.arow{display:grid;grid-template-columns:1fr 200px 170px 44px;gap:10px;margin-bottom:10px;align-items:start}
+.arow input,.arow select{border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:17px;width:100%;background:#fff}
+.arow .x{border:0;background:none;font-size:26px;color:var(--muted);cursor:pointer;padding:6px 0}
+.hint{background:var(--sun);color:var(--sun-ink);border-radius:var(--r);padding:14px 18px;font-weight:700;margin:18px 0}
+.ph{background:var(--sun);color:var(--sun-ink);padding:0 4px;border-radius:4px}
+.fill{color:#C62828;font-weight:800;border-bottom:2px solid #C62828}
+.box{width:100%;min-height:150px;border:2px solid var(--line);border-radius:var(--r);padding:14px 16px;font-size:18px;background:#fff;line-height:1.5;white-space:pre-wrap}
+.box:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.note{font-size:15px;color:#C62828;font-weight:700;margin:-4px 0 12px}
+input[type=date]{cursor:pointer;padding-right:52px!important;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='%231E9E88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='18' height='16' rx='3'/><path d='M3 10h18M8 3v4M16 3v4'/></svg>");background-repeat:no-repeat;background-position:right 14px center}
+input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:30px;cursor:pointer}
+.cal{position:absolute;z-index:50;background:#fff;border:2px solid var(--line);border-radius:var(--r);box-shadow:0 12px 32px rgba(20,40,50,.14);padding:14px;width:340px;display:none;font-size:16px}
+.cal.open{display:block}
+.cal .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-weight:800;font-size:18px}
+.cal .h button{border:0;background:var(--soft);border-radius:99px;width:38px;height:38px;font-size:20px;cursor:pointer;font-weight:800}
+.cal .g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .g .w{font-size:13px;font-weight:800;color:var(--muted);padding:4px 0}
+.cal .g button{border:0;background:none;border-radius:10px;padding:9px 0;font-weight:700;cursor:pointer;font-size:16px}
+.cal .g button:hover{background:var(--brand-soft)}
+.cal .g button.o{color:#B9C3CC}
+.cal .g button.t{box-shadow:inset 0 0 0 2px var(--brand)}
+.cal .g button.s{background:var(--brand);color:#fff}
+.cal .f{display:flex;justify-content:space-between;margin-top:10px}
+.cal .f button{border:0;background:none;color:var(--brand);font-weight:800;cursor:pointer;font-size:15px;padding:6px 8px}
+.callout{background:var(--sun);border:2px solid #F1DFA0;color:#5C4400;border-radius:var(--r);padding:14px 18px;margin:0 0 22px;font-size:16px;line-height:1.5}
+.callout b{display:block;font-weight:800;margin-bottom:2px}
+.demo{display:inline-block;background:var(--sun);color:var(--sun-ink);font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.btns{display:flex;gap:12px;justify-content:space-between;margin-top:34px;padding-top:22px;border-top:2px solid var(--line)}
+.btn{border:2px solid var(--line);background:#fff;border-radius:99px;padding:14px 28px;font-weight:800;font-size:18px;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:10px 18px;font-size:16px}
+.todo{border:2px solid var(--line);border-radius:var(--r);padding:18px 20px;margin-bottom:22px}
+.todo h3{font-size:20px;font-weight:800;margin-bottom:8px}
+.todo ul{margin:0;padding-left:22px}.todo li{margin:4px 0}
+.todo.ok{background:var(--brand-soft);border-color:var(--brand)}
+.todo.no{background:var(--rose);border-color:#F3C3C3;color:var(--rose-ink)}
+.doc{border:2px solid var(--line);border-radius:var(--r);padding:36px 40px;background:#fff;font-family:Georgia,"Times New Roman",serif;font-size:16px;line-height:1.6}
+.doc h1{font-size:24px;font-weight:700;font-family:inherit;margin-bottom:6px}
+.doc .meta{font-family:var(--font);font-size:14px;color:var(--ink2);display:grid;grid-template-columns:auto 1fr;gap:2px 14px;margin:10px 0 20px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.doc .meta b{font-weight:800}
+.doc h2{font-family:var(--font);font-size:13px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--brand);margin:20px 0 6px}
+.doc p{margin:0 0 8px}.doc ul{margin:0 0 8px 20px;padding:0}
+.doc table{border-collapse:collapse;width:100%;font-family:var(--font);font-size:14px;margin:6px 0 10px}.doc th,.doc td{border:1px solid var(--line);padding:6px 8px;text-align:left}.doc th{background:var(--soft)}
+.doc .sig{display:grid;grid-template-columns:1fr 1fr;gap:20px 30px;margin-top:26px;font-family:var(--font);font-size:14px;color:var(--ink2)}.doc .sig div{border-top:1px solid var(--muted);padding-top:4px}
+.doc .attest{font-style:italic;color:var(--ink2);margin-top:18px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:99px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media print{body *{visibility:hidden}.doc,.doc *{visibility:visible}.doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0}}
+@media (max-width:700px){.row,.cards{grid-template-columns:1fr}.arow{grid-template-columns:1fr}h1{font-size:30px}.wrap{padding:18px 16px 60px}}
+@media (prefers-reduced-motion:reduce){.bar i,.toast{transition:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">Heights Plan Builder<span class="demo">DEMO</span><small>Heights Care and Rehabilitation · yellow boxes are notes from Sean</small></div><div class="stepct" id="stepct"></div></div>
+  <div class="bar"><i id="bar"></i></div>
+
+  <!-- 1 -->
+  <section class="step on" data-step="1">
+    <h1>What kind of plan is this?</h1>
+    <p class="lead">Pick one. You can change it later.</p><div class="callout"><b>Sam, question from Sean:</b>The two definitions are straight from your email. The concern list is your examples (abuse, med administration, falls) plus what your six documents cover. What else belongs on it? I also added a Department dropdown, which you didn't call out, so tell me if that's useful or not. If there's anything else on this page you want changed, let me know. If you want more dropdowns, I'm good with that.</div>
+    <div class="cards" id="typeCards">
+      <button type="button" class="card on" data-t="POC"><b>Plan of Correction</b><span>POC · specific to a policy or regulation</span></button>
+      <button type="button" class="card" data-t="PIP"><b>Performance Improvement Plan</b><span>PIP · specific to a person or department</span></button>
+    </div>
+    <div class="row">
+      <div class="f"><label>What is the concern?</label><select id="cat"></select></div>
+      <div class="f"><label>Department</label><select id="dept"><option>Administration</option><option>Nursing</option><option>Social Services</option><option>Activities</option><option>Therapy / Pulmonary Program</option><option>Dietary</option><option>Housekeeping</option><option>All departments</option></select></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="step" data-step="2">
+    <h1>Which regulation does it fall under?</h1>
+    <p class="lead">Every CMS F-tag is in the list. Start typing a number or a word to narrow it down.</p><div class="callout"><b>Sam, question from Sean:</b>All 211 tags come from the CMS list, grouped the way CMS groups them. "Regulatory focus" is set from that CMS group. Your activities PIP wrote it as "Quality of Life, Resident Rights, Environment of Care". Is this what you meant, or is it something else? Let me know what you think about this screen. Do we need to change any of the tags, any of the regulatory focus items, or any changes on here? Feel free to let me know.</div>
+    <div class="f"><label>Find a tag</label><input id="tagSearch" placeholder="e.g. 600, abuse, grievance, falls"></div>
+    <div class="f"><label>Deficiency tag</label><select id="ftag" size="7"></select></div>
+    <div class="f"><label>Regulatory focus</label><p class="src">Set automatically from the tag's CMS group. Add or remove as needed.</p><div class="chips" id="focus"></div><div style="margin-top:10px"><select id="focusAdd"><option value="">+ Add another focus area…</option></select></div></div>
+  </section>
+
+  <!-- 3 -->
+  <section class="step" data-step="3">
+    <h1>A few details first</h1>
+    <p class="lead">These get filled into the plan wording on the next screens.</p><div class="callout"><b>Sam, question from Sean:</b>Residents are entered by number only, never a name. Is that how you want it? Anything else we should ask up front so it can be filled in automatically? And if this page should look or work differently, just say so.</div>
+    <div class="row">
+      <div class="f"><label>Event date</label><input type="date" id="event"></div>
+      <div class="f poc"><label>Resident number(s)</label><input id="resid" placeholder="e.g. 12, or 12 and 14 — never a name"></div>
+    </div>
+    <div id="asks"></div>
+    <div class="row">
+      <div class="f"><label>Date initiated</label><input type="date" id="init" value="2026-09-13"></div>
+      <div class="f"><label>Prepared by</label><input id="prep" value="Samuel Krommenhoek, NHA"></div>
+    </div>
+    <div class="f"><label>Plan title</label><input id="title"></div>
+    <div class="hint">30-day review will be due <span id="dueTxt"></span></div>
+  </section>
+
+  <!-- 4 -->
+  <section class="step" data-step="4">
+    <h1>What's the concern?</h1>
+    <div class="callout"><b>Sam, questions from Sean:</b><span class="dyn" data-dyn="problem"></span> The red text is pre-populated from what was entered on the previous screen. If there's any other data we should be pulling in, let me know and I'll add it to the previous screen so it gets brought in here. Also, if you want the wording to change based on what was picked, I just need the if-then logic from you. For example: if an allegation of X happened, here's the text we'd produce for that situation. Same idea for any dropdown on the previous screen: pick a certain option, and we prepopulate templated text here based on that. Any thoughts or examples you can give me would help a lot.</div>
+    <p class="note" id="note-problem" hidden>* Red text was filled in from your answers on the last screen. Please confirm it before continuing.</p>
+    <p class="src" id="src-problem"></p>
+    <div class="f"><div class="box" id="problem" contenteditable="true"></div></div>
+  </section>
+
+  <!-- 5 -->
+  <section class="step" data-step="5">
+    <h1>What was done immediately?</h1>
+    <p class="lead">Check what actually happened. Unchecked items stay out of the plan.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="imm"></span> This list changes with the concern picked on screen 1 (abuse shows the six from your abuse POC, elopement shows the ones from the elopement POC). It does not change with the F-tag. Should it? Is anything missing from these lists? Anything else you'd change on this screen, I'm all ears.</div>
+    
+    <p class="src" id="src-imm"></p>
+    <div class="checks" id="immChecks"></div>
+    <div class="f" style="margin-top:16px"><label>Anything else?</label><input id="immExtra" placeholder="Add an action specific to this event"></div>
+  </section>
+
+  <!-- 6 -->
+  <section class="step" data-step="6">
+    <div class="poc"><h1>Who else is at risk?</h1><p class="lead">How the facility checked whether other residents could be affected.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="risk"></span> The red part comes from the "Were other residents affected?" answer on the details screen. Want it to say something different, or pull in something else? Tell me the trigger on the earlier screens and the wording you'd want, and I'll swap it in. Templated text like this is easy to change anytime. I'm all ears.</div><p class="note" id="note-risk" hidden>* Red text was filled in from your answers. Please confirm it before continuing.</p><p class="src" id="src-risk"></p><div class="f"><div class="box" id="risk" contenteditable="true"></div></div></div>
+    <div class="pip"><h1>What's the goal?</h1><p class="lead">What success looks like, in numbers if you can.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="goal"></span> If you'd rather the goal be built from a couple of quick questions (target %, timeframe) instead of a text box, say so and I'll set that up. Any other thoughts on this screen are welcome.</div><p class="src" id="src-goal"></p><div class="f"><textarea id="goal"></textarea></div></div>
+  </section>
+
+  <!-- 7 -->
+  <section class="step" data-step="7">
+    <h1>Why did it happen?</h1>
+    <p class="lead">Root cause. Check the factors that apply.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="rca"></span> Do you want root cause as a checklist like this, free text, or both? Any other tweaks to this page are welcome too.</div>
+    
+    <p class="src" id="src-rca"></p>
+    <div class="checks" id="rcaChecks"></div>
+    <div class="f" style="margin-top:16px"><label>Another factor?</label><input id="rcaExtra"></div>
+  </section>
+
+  <!-- 8 -->
+  <section class="step" data-step="8">
+    <h1>What changes, by when, and who owns it?</h1>
+    <p class="lead">One line per change. Use job titles, not names.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="actions"></span> The job titles in the dropdown are the ones that appear in your documents. Are they the right titles for Heights, and are any missing? If you'd rather this table work differently, tell me how.</div>
+    
+    <p class="src" id="src-actions"></p>
+    <div id="actions"></div>
+    <button type="button" class="btn sm" id="addAction">+ Add a change</button>
+  </section>
+
+  <!-- 9 -->
+  <section class="step" data-step="9">
+    <h1>How will you monitor it?</h1>
+    <p class="lead">Who audits, how often, for how long, and where the results go.</p><div class="callout"><b>Sam, question from Sean:</b><span class="dyn" data-dyn="mon"></span> Every one of your plans sends results to QAPI monthly. Is the "30-day review" the same thing as that monthly QAPI review, or a separate step? Also let me know if these monitoring fields are the right ones or if you'd change any.</div>
+    
+    <p class="src" id="src-mon"></p>
+    <div class="row">
+      <div class="f"><label>Audited by</label><input id="mBy"></div>
+      <div class="f"><label>How often</label><select id="mFreq"><option>Weekly</option><option>5 times per week</option><option>Daily</option><option>Monthly</option></select></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>For how long</label><input id="mDur" placeholder="e.g. 4 weeks"></div>
+      <div class="f"><label>Then</label><input id="mThen" placeholder="e.g. monthly × 3 months"></div>
+    </div>
+    <div class="row">
+      <div class="f"><label>Audit tool</label><input id="mTool"></div>
+      <div class="f"><label>Results go to</label><input id="mTo" value="QAPI Committee, monthly"></div>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section class="step" data-step="10">
+    <h1>Compliance date and who is responsible</h1>
+    <p class="lead">When the facility will be in compliance, and who owns the plan.</p>
+    <div class="row">
+      <div class="f"><label>Date of compliance</label><input type="date" id="comp"></div>
+      <div class="f"><label>Plan owner (gets the reminders)</label><select id="owner"></select></div>
+    </div>
+    <div class="f"><label>Responsible persons</label><div class="chips" id="roles"></div></div>
+  </section>
+
+  <!-- 11 -->
+  <section class="step" data-step="11">
+    <h1>Review and export</h1>
+    <p class="lead">Here is the finished document.</p><div class="callout"><b>Sam, question from Sean:</b>Export is a PDF. Do these plans ever get pasted into the state's ePOC system as the formal survey response, or are they held internally? And take a look at the finished document below. If the wording, order, or layout should change, let me know what you'd do differently.</div>
+    <div class="todo" id="todo"></div>
+    <div class="doc" id="doc"></div>
+  </section>
+
+  <div class="btns"><button type="button" class="btn" id="back">← Back</button><div style="display:flex;gap:12px"><button type="button" class="btn" id="pdf" hidden>Export PDF</button><button type="button" class="btn primary" id="next">Next →</button></div></div>
+</div>
+<div class="toast" id="toast"></div>
+<div class="cal" id="cal" role="dialog" aria-label="Choose a date"></div>
+
+<script>
+const FTAGS = [{"tag": "F540", "title": "Definitions", "group": "Definitions", "reg": ""}, {"tag": "F550", "title": "Resident Rights/Exercise of Rights", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F551", "title": "Rights Exercised by Representative", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F552", "title": "Right to be Informed/Make Treatment Decisions", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F553", "title": "Right to Participate in Planning Care", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F554", "title": "Resident Self‐Admin Meds‐Clinically Appropriate", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F555", "title": "Right to Choose/Be Informed of Attending Physician", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F557", "title": "Respect, Dignity/Right to have Personal Property", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F558", "title": "Reasonable Accommodations of Needs/Preferences", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F559", "title": "Choose/Be Notified of Room/Roommate Change", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F560", "title": "Right to Refuse Certain Transfers", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F561", "title": "Self Determination", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F562", "title": "Immediate Access to Resident", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F563", "title": "Right to Receive/Deny Visitors", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F564", "title": "Inform of Visitation Rights/Equal Visitation Privileges", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F565", "title": "Resident/Family Group and Response", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F566", "title": "Right to Perform Facility Services or Refuse", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F567", "title": "Protection/Management of Personal Funds", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F568", "title": "Accounting and Records of Personal Funds", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F569", "title": "Notice and Conveyance of Personal Funds", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F570", "title": "Surety Bond ‐ Security of Personal Funds", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F571", "title": "Limitations on Charges to Personal Funds", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F572", "title": "Notice of Rights and Rules", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F573", "title": "Right to Access/Purchase Copies of Records", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F574", "title": "Required Notices and Contact Information", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F575", "title": "Required Postings", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F576", "title": "Right to Forms of Communication with Privacy", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F577", "title": "Right to Survey Results/Advocate Agency Info", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F578", "title": "Request/Refuse/Discontinue Treatment;Formulate Adv Di", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F579", "title": "Posting/Notice of Medicare/Medicaid on Admission", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F580", "title": "Notify of Changes (Injury/Decline/Room, Etc.)", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F582", "title": "Medicaid/Medicare Coverage/Liability Notice", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F583", "title": "Personal Privacy/Confidentiality of Records", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F584", "title": "Safe/Clean/Comfortable/Homelike Environment", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F585", "title": "Grievances", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F586", "title": "Resident Contact with External Entities", "group": "Resident Rights", "reg": "483.10"}, {"tag": "F600", "title": "Free from Abuse and Neglect", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F602", "title": "Free from Misappropriation/Exploitation", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F603", "title": "Free from Involuntary Seclusion", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F604", "title": "Right to be Free from Physical Restraints", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F605", "title": "Right to be Free from Chemical Restraints", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F606", "title": "Not Employ/Engage Staff with Adverse Actions", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F607", "title": "Develop/Implement Abuse/Neglect, etc. Policies", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F608", "title": "Reporting of Reasonable Suspicion of a Crime", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F609", "title": "Reporting of Alleged Violations", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F610", "title": "Investigate/Prevent/Correct Alleged Violation", "group": "Freedom from Abuse, Neglect, and Exploitation", "reg": "483.12"}, {"tag": "F620", "title": "Admissions Policy", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F621", "title": "Equal Practices Regardless of Payment Source", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F622", "title": "Transfer and Discharge Requirements", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F623", "title": "Notice Requirements Before Transfer/Discharge", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F624", "title": "Preparation for Safe/Orderly Transfer/Discharge", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F625", "title": "Notice of Bed Hold Policy Before/Upon Transfer", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F626", "title": "Permitting Residents to Return to Facility", "group": "Admission, Transfer, and Discharge", "reg": "483.15"}, {"tag": "F635", "title": "Admission Physician Orders for Immediate Care", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F636", "title": "Comprehensive Assessments & Timing", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F637", "title": "Comprehensive Assmt After Significant Change", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F638", "title": "Quarterly Assessment At Least Every 3 Months", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F639", "title": "Maintain 15 Months of Resident A ssessments", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F640", "title": "Encoding/Transmitting Resident Assessment", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F641", "title": "Accuracy of Assessments", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F642", "title": "Coordination/Certification of A ssessment", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F644", "title": "Coordination of PASARR and Assessments", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F645", "title": "PASARR Screening for MD & ID", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F646", "title": "MD/ID Significant Change Notification", "group": "Resident Assessments", "reg": "483.20"}, {"tag": "F655", "title": "Baseline Care Plan", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F656", "title": "Develop/Implement Comprehensive Care Plan", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F657", "title": "Care Plan Timing and Revision", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F658", "title": "Services Provided Meet Professional Standards", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F659", "title": "Qualified Persons", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F660", "title": "Discharge Planning Process", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F661", "title": "Discharge Summary", "group": "Comprehensive Resident Centered Care Plan", "reg": "483.21"}, {"tag": "F675", "title": "Quality of Life", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F676", "title": "Activities of Daily Living (ADLs)/ Maintain Abilities", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F677", "title": "ADL Care Provided for Dependent Residents", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F678", "title": "Cardio‐Pulmonary Resuscitation (CPR)", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F679", "title": "Activities Meet Interest/Needs of Each Resident", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F680", "title": "Qualifications of Activity Professional", "group": "Quality of Life", "reg": "483.24"}, {"tag": "F684", "title": "Quality of Care", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F685", "title": "Treatment/Devices to Maintain Hearing/Vision", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F686", "title": "Treatment/Svcs to Prevent/Heal Pressure Ulcers", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F687", "title": "Foot Care", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F688", "title": "Increase/Prevent Decrease in ROM/Mobility", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F689", "title": "Free of Accident Hazards/Supervision/Devices", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F690", "title": "Bowel/Bladder Incontinence, Catheter, UTI", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F691", "title": "Colostomy, Urostomy, or Ileostomy Care", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F692", "title": "Nutrition/Hydration Status Maintenance", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F693", "title": "Tube Feeding Management/Restore Eating Skills", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F694", "title": "Parenteral/IV Fluids", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F695", "title": "Respiratory/Tracheostomy care and Suctioning", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F696", "title": "Prostheses", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F697", "title": "Pain Management", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F698", "title": "Dialysis", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F699", "title": "{PHASE‐3} Trauma Informed Care", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F700", "title": "Bedrails", "group": "Quality of Care", "reg": "483.25"}, {"tag": "F710", "title": "Resident's Care Supervised by a Physician", "group": "Physician Services", "reg": "483.30"}, {"tag": "F711", "title": "Physician Visits‐ Review Care/Notes/Order", "group": "Physician Services", "reg": "483.30"}, {"tag": "F712", "title": "Physician Visits‐Frequency/Timeliness/Alternate NPPs", "group": "Physician Services", "reg": "483.30"}, {"tag": "F713", "title": "Physician for Emergency Care, Available 24 Hours", "group": "Physician Services", "reg": "483.30"}, {"tag": "F714", "title": "Physician Delegation of Tasks to NPP", "group": "Physician Services", "reg": "483.30"}, {"tag": "F715", "title": "Physician Delegation to Dietitian/Therapist", "group": "Physician Services", "reg": "483.30"}, {"tag": "F725", "title": "Sufficient Nursing Staff", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F726", "title": "Competent Nursing Staff", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F727", "title": "RN 8 Hrs/7 days/Wk, Full Time DON", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F728", "title": "Facility Hiring and Use of Nurse", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F729", "title": "Nurse Aide Registry Verification, Retraining", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F730", "title": "Nurse Aide Perform Review – 12Hr/Year In‐ service", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F731", "title": "Waiver‐Licensed Nurses 24Hr/Day and RN Coverage", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F732", "title": "Posted Nurse Staﬃng Information", "group": "Nursing Services", "reg": "483.35"}, {"tag": "F740", "title": "Behavioral Health Services", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F741", "title": "Sufficient/Competent Staff‐Behav Health Needs", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F742", "title": "Treatment/Svc for Mental/Psychosocial Concerns", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F743", "title": "No Pattern of Behavioral Difficulties Unless Unavoidable", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F744", "title": "Treatment /Service for Dementia", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F745", "title": "Provision of Medically Related Social Services", "group": "Behavioral Health", "reg": "483.40"}, {"tag": "F755", "title": "Pharmacy Svcs/Procedures/Pharmacist/ Records", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F756", "title": "Drug Regimen Review, Report Irregular, Act On", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F757", "title": "Drug Regimen is Free From Unnecessary Drugs", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F758", "title": "Free from Unnec Psychotropic Meds/PRN Use", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F759", "title": "Free of Medication Error Rate sof 5% or More", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F760", "title": "Residents Are Free of Significant Med Errors", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F761", "title": "Label/Store Drugs & Biologicals", "group": "Pharmacy Services", "reg": "483.45"}, {"tag": "F770", "title": "Laboratory Services", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F771", "title": "Blood Blank and Transfusion Services", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F772", "title": "Lab Services Not Provided On‐Site", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F773", "title": "Lab Svs Physician Order/Notify of Results", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F774", "title": "Assist with Transport Arrangements to Lab Svcs", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F775", "title": "Lab Reports in Record‐Lab Name/Address", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F776", "title": "Radiology/Other Diagnostic Services", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F777", "title": "Radiology/Diag. Svcs Ordered/Notify Results", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F778", "title": "Assist with Transport Arrangements to Radiology", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F779", "title": "X‐Ray/Diagnostic Report in Record‐Sign/Dated", "group": "Laboratory, Radiology, and Other Diagnostic Services", "reg": "483.50"}, {"tag": "F790", "title": "Routine/Emergency Dental Services in SNFs", "group": "Dental Services", "reg": "483.55"}, {"tag": "F791", "title": "Routine/Emergency Dental Services in NFs", "group": "Dental Services", "reg": "483.55"}, {"tag": "F800", "title": "Provided Diet Meets Needs of Each Resident", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F801", "title": "Qualified Dietary Staff", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F802", "title": "Suﬃcient Dietary Support Personnel", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F803", "title": "Menus Meet Res Needs/Prep in Advance/Followed", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F804", "title": "Nutritive Value/Appear, Palatable/Prefer Temp", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F805", "title": "Food in Form to Meet Individual Needs", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F806", "title": "Resident Allergies, Preferences and Substitutes", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F807", "title": "Drinks Avail to Meet Needs/P references/ Hydration", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F808", "title": "Therapeutic Diet Prescribed by Physician", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F809", "title": "Frequency of Meals/Snacks at Bedtime", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F810", "title": "Assistive Devices ‐ Eating Equipment/Utensils", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F811", "title": "Feeding Asst ‐Training/Supervision/Resident", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F812", "title": "Food Procurement, Store/Prepare/Serve ‐ Sanitary", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F813", "title": "Personal Food Policy", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F814", "title": "Dispose Garbage & Refuse Properly", "group": "Food and Nutrition Services", "reg": "483.60"}, {"tag": "F825", "title": "Provide/Obtain Specialized Rehab Services", "group": "Specialized Rehabilitative Services", "reg": "483.65"}, {"tag": "F826", "title": "Rehab Services‐ Physician Order/Qualified Person", "group": "Specialized Rehabilitative Services", "reg": "483.65"}, {"tag": "F835", "title": "Administration", "group": "Administration", "reg": "483.70"}, {"tag": "F836", "title": "License/Comply w/Fed/State/Local Law/Prof Std", "group": "Administration", "reg": "483.70"}, {"tag": "F837", "title": "Governing Body", "group": "Administration", "reg": "483.70"}, {"tag": "F838", "title": "Facility Assessment", "group": "Administration", "reg": "483.70"}, {"tag": "F839", "title": "Staff Qualifications", "group": "Administration", "reg": "483.70"}, {"tag": "F840", "title": "Use of Outside Resources", "group": "Administration", "reg": "483.70"}, {"tag": "F841", "title": "Responsibilities of Medical Director", "group": "Administration", "reg": "483.70"}, {"tag": "F842", "title": "Resident Records ‐ Identifiable Information", "group": "Administration", "reg": "483.70"}, {"tag": "F843", "title": "Transfer Agreement", "group": "Administration", "reg": "483.70"}, {"tag": "F844", "title": "Disclosure of Ownership Requirements", "group": "Administration", "reg": "483.70"}, {"tag": "F845", "title": "Facility closure‐Administrator", "group": "Administration", "reg": "483.70"}, {"tag": "F846", "title": "Facility closure", "group": "Administration", "reg": "483.70"}, {"tag": "F847", "title": "Enter into Binding Arbitration Agreements", "group": "Administration", "reg": "483.70"}, {"tag": "F848", "title": "Select Arbitrator/Venue, Retention of Agreements", "group": "Administration", "reg": "483.70"}, {"tag": "F849", "title": "Hospice Services", "group": "Administration", "reg": "483.70"}, {"tag": "F850", "title": "Qualifications of Social Worker >120 Beds", "group": "Administration", "reg": "483.70"}, {"tag": "F851", "title": "Payroll Based Journal", "group": "Administration", "reg": "483.70"}, {"tag": "F865", "title": "QAPI Program/Plan, Disclosure/Good Faith Attempt", "group": "Quality Assurance and Performance Improvement", "reg": "483.75"}, {"tag": "F866", "title": "{PHASE‐3} QAPI/QAA Data Collection and Monitoring", "group": "Quality Assurance and Performance Improvement", "reg": "483.75"}, {"tag": "F867", "title": "QAPI/QAA Improvement Activities", "group": "Quality Assurance and Performance Improvement", "reg": "483.75"}, {"tag": "F868", "title": "QAA Committee", "group": "Quality Assurance and Performance Improvement", "reg": "483.75"}, {"tag": "F880", "title": "Infection Prevention & Control", "group": "Infection Control", "reg": "483.80"}, {"tag": "F881", "title": "Antibiotic Stewardship Program", "group": "Infection Control", "reg": "483.80"}, {"tag": "F882", "title": "Infection Preventionist Qualifications/Role", "group": "Infection Control", "reg": "483.80"}, {"tag": "F883", "title": "Influenza and Pneumococcal Immunizations", "group": "Infection Control", "reg": "483.80"}, {"tag": "F884", "title": "Reporting – National Health Safety Network", "group": "Infection Control", "reg": "483.80"}, {"tag": "F885", "title": "Reporting – Residents, Representatives & Families", "group": "Infection Control", "reg": "483.80"}, {"tag": "F886", "title": "COVID-19 Testing-Residents & Staff", "group": "Infection Control", "reg": "483.80"}, {"tag": "F887", "title": "COVID-19 Immunization", "group": "Infection Control", "reg": "483.80"}, {"tag": "F895", "title": "{PHASE‐3} Compliance and Ethics Program", "group": "Compliance and Ethics Program", "reg": "483.85"}, {"tag": "F906", "title": "Emergency Electrical Power System", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F907", "title": "Space and Equipment", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F908", "title": "Essential Equipment, Safe Operating Condition", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F909", "title": "Resident Bed", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F910", "title": "Resident Room", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F911", "title": "Bedroom Number of Residents", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F912", "title": "Bedrooms Measure at Least 80 Square Ft/Resident", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F913", "title": "Bedrooms Have Direct Access to Exit Corridor", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F914", "title": "Bedrooms Assure Full Visual Privacy", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F915", "title": "Resident Room Window", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F916", "title": "Resident Room Floor Above Grade", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F917", "title": "Resident Room Bed/Furniture/Closet", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F918", "title": "Bedrooms Equipped/Near Lavatory/Toilet", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F919", "title": "Resident Call System", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F920", "title": "Requirements for Dining and Activity Rooms", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F921", "title": "Safe/Functional/Sanitary/ Comfortable Environment", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F922", "title": "Procedures to Ensure Water Availability", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F923", "title": "Ventilation", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F924", "title": "Corridors Have Firmly Secured Handrails", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F925", "title": "Maintains Eﬀective Pest Control Program", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F926", "title": "Smoking Policies", "group": "Physical Environment", "reg": "483.90"}, {"tag": "F940", "title": "{PHASE‐3} Training Requirements ‐ General", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F941", "title": "{PHASE‐3} Communication Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F942", "title": "{PHASE‐3} Resident’s Rights Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F943", "title": "Abuse, Neglect, and Exploitation Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F944", "title": "{PHASE‐3} QAPI Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F945", "title": "{PHASE‐3} Infection Control Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F946", "title": "{PHASE‐3} Compliance and Ethics Training", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F947", "title": "Required In‐Service Training for Nurse Aides", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F948", "title": "Training for Feeding Assistants", "group": "Training Requirements", "reg": "483.95"}, {"tag": "F949", "title": "{PHASE‐3} Behavioral Health Training", "group": "Training Requirements", "reg": "483.95"}];
+const ROLES = ['Administrator / NHA','Director of Nursing','ADON','Staff Development Coordinator','Social Services Director','Activity Director','MDS Coordinator','Pulmonary Program Coordinator','Human Resources','Regional Resource','RVPO','QAPI Committee','All staff'];
+// Prefilled wording. src = the document it came from. drafted = we wrote it (no source in Sam's documents).
+const CATS = {
+  abuse:{name:'Abuse or neglect allegation',tag:'F600',dept:'Nursing',src:'Plan of Correction Abuse Heights.docx',drafted:['problem','goal'],asks:[{k:'type of abuse',label:'Type of abuse',type:'select',opts:['physical abuse','verbal abuse','mental abuse','sexual abuse','neglect','misappropriation / exploitation']},{k:'other findings',label:'Were other residents affected?',type:'select',opts:['No additional incidents were identified','Additional findings were identified and addressed immediately']}],
+    problem:'On [event date], an allegation of [type of abuse] involving [resident] was identified. The facility identified inconsistent staff understanding of abuse prevention and reporting requirements and opportunities to improve recognition of behavioral triggers and supervision.',
+    imm:['Alleged perpetrator immediately removed from resident care duties pending investigation','Resident(s) involved assessed for physical and psychosocial injury','Physician and responsible party notified','Allegation reported immediately to CDPHE','Local law enforcement notified, if applicable','Increased monitoring and supervision implemented for affected residents'],
+    risk:'A facility-wide audit was conducted to identify any other residents who may have been exposed to similar risk. Interviews were conducted with residents (as appropriate), staff and family members. [other findings]',
+    rca:['Inconsistent staff understanding of abuse prevention and reporting requirements','Inadequate recognition of behavioral triggers in residents','Lack of structured engaging activities, contributing to agitation and behavioral escalation','Opportunities for improvement in staff supervision and intervention timing'],
+    goal:'100% of allegations reported within the required 2-hour / 24-hour timeframes and 100% of staff educated on abuse prohibition.',
+    actions:[['Re-educate all staff on abuse prohibition policy: definitions, 2-hour / 24-hour reporting, zero tolerance','Staff Development Coordinator',7],['Obtain agency staff signatures on abuse policy prior to first shift','Human Resources',7],['Implement individualized activity assessments and increase structured / 1:1 engagement','Activity Director',14],['Increase leadership presence and random rounding during high-risk times','Administrator / NHA',0]],
+    mon:{freq:'Weekly',dur:'4 weeks',then:'monthly × 3 months',tool:'Abuse prevention audit; incident reports and behavior tracking logs',by:'DON or designee'}},
+  elope:{name:'Elopement or independent pass',tag:'F689',dept:'Nursing',src:'Failed Pass Heights 5.29.docx',drafted:['problem','rca','goal'],asks:[{k:'return date',label:'Date the resident returned',type:'date'}],
+    problem:'On [event date], [resident] signed out on an independent pass and did not return timely. Staff initiated the elopement procedure including notifying the police. The resident returned on [return date] with no adverse effects.',
+    imm:['Full post-elopement assessment completed by nursing','Care plan reviewed and updated for elopement risk, supervision needs and interventions','Independent pass privileges placed on hold pending reassessment','Resident assessed every shift for 72 hours; changes reported to provider','Resident educated not to leave during inclement weather, power outages or other unsafe situations','Speech therapy to complete non-verbal cognitive assessment where aphasia is present'],
+    risk:'A facility-wide review was completed for all residents with cognitive impairment, elopement risk or current pass privileges, including review of elopement risk assessments, care plans, supervision levels during passes and documentation accuracy. A passbook with names and photos of residents with independent passes was placed at the front desk with the elopement binder. Identified concerns were corrected immediately.',
+    rca:['Independent pass orders not consistently placed in each resident chart','Community safety assessment not completed collaboratively by the IDT','Pass policy and elopement prevention policy lacked clear eligibility criteria','Resident identity verification and lanyard policy not consistently followed'],
+    goal:'100% of residents with independent passes will have a corresponding order, care plan and signed pass-policy acknowledgement.',
+    actions:[['DON/designee completes full-house elopement risk assessment and updates elopement binder','Director of Nursing',7],['DON/designee completes full-house independent pass order review (order, care plan, signed acknowledgement)','Director of Nursing',7],['SDC educates all staff on elopement protocol, pass policy, lanyard policy and identity verification','Staff Development Coordinator',14],['Revise pass policy and elopement prevention policy; redistribute to staff','Administrator / NHA',14]],
+    mon:{freq:'5 times per week',dur:'12 weeks',then:'QAPI monthly × 3 months',tool:'Standardized audit tool: community safety assessment for new admissions and changes in condition',by:'DON, Social Services Director and Administrator/designee'}},
+  falls:{name:'Falls (draft)',tag:'F689',dept:'Nursing',src:'',drafted:['problem','imm','risk','rca','goal','actions','mon'],asks:[{k:'injury',label:'Injury?',type:'select',opts:['with injury','without injury']},{k:'location',label:'Where did it happen?',type:'text'}],
+    problem:'On [event date], [resident] sustained a fall [injury] in [location]. The facility identified opportunities to improve fall-risk assessment, care-plan interventions and post-fall follow-up.',
+    imm:['Resident assessed for injury; neuro checks initiated per protocol','Physician and responsible party notified','Post-fall huddle completed and immediate cause addressed','Care plan updated with new fall interventions'],
+    risk:'A facility-wide review of residents at high fall risk was completed, including fall-risk assessments, care-plan interventions and environmental hazards. Identified concerns were corrected immediately.',
+    rca:['Fall-risk assessment not updated after change in condition','Care-plan interventions not consistently implemented','Environmental hazards (lighting, footwear, call light placement)','Staffing / rounding frequency during high-risk times'],
+    goal:'Reduce falls with injury by [__]% and achieve 100% post-fall huddle completion.',
+    actions:[['Re-educate nursing staff on fall-risk assessment and post-fall protocol','Staff Development Coordinator',14],['Audit high-risk residents for care-plan interventions in place','Director of Nursing',7]],
+    mon:{freq:'Weekly',dur:'4 weeks',then:'monthly × 3 months',tool:'Fall audit tool; incident reports',by:'DON or designee'}},
+  meds:{name:'Medication administration (draft)',tag:'F760',dept:'Nursing',src:'',drafted:['problem','imm','risk','rca','goal','actions','mon'],asks:[{k:'error type',label:'Type of error',type:'select',opts:['omission','wrong dose','wrong time','wrong medication','wrong resident']}],
+    problem:'On [event date], a medication error involving [resident] was identified ([error type]). The facility identified opportunities to improve medication administration practices and verification.',
+    imm:['Resident assessed; physician and responsible party notified','Medication administration record reviewed and corrected','Involved staff removed from med pass pending competency validation'],
+    risk:'A facility-wide MAR audit was completed for residents receiving [drug class / all residents]. Identified concerns were corrected immediately.',
+    rca:['Interruptions during medication pass','Transcription / order entry errors','Competency gaps for new or agency nurses'],
+    goal:'Zero significant medication errors, verified by med-pass observation audits.',
+    actions:[['Complete medication administration competency for all licensed nurses','Staff Development Coordinator',14],['Implement med-pass observation audits','Director of Nursing',7]],
+    mon:{freq:'Weekly',dur:'4 weeks',then:'monthly × 3 months',tool:'Med-pass observation audit; MAR review',by:'DON or designee'}},
+  griev:{name:'Grievance process',tag:'F585',dept:'Social Services',src:'Grievance PIP Heigts .docx',drafted:['imm','risk','rca'],
+    problem:'The facility identified inconsistent identification, documentation and follow-up of resident grievances. Opportunities for improvement include ensuring that all residents are offered a grievance form and assisted as needed, and that follow-up actions are consistently documented and tracked through resolution.',
+    imm:['Grievance log reviewed and open items assigned','Residents with open concerns contacted and offered grievance forms','Abuse coordinator notified for any grievance alleging abuse or neglect'],
+    risk:'All current residents were reviewed for unresolved concerns; residents unable to complete forms independently were offered staff assistance.',
+    rca:['Concerns not consistently classified as grievance vs. concern','Grievance forms not offered before end of shift when issues could not be resolved','Follow-up and resolution not consistently documented in the grievance log','Staff not consistently notifying Social Services or the Administrator the same day'],
+    goal:'100% of grievances acknowledged within 24 hours; 100% of residents offered a grievance form when issues are not immediately resolved; 100% of residents unable to complete forms independently receive staff assistance; 100% of grievances investigated, resolved and documented.',
+    actions:[['Enter every grievance into the Grievance Log within 24 hours and acknowledge receipt to the resident','Social Services Director',0],['Administrator/designee initiates investigation within 24 hours','Administrator / NHA',0],['Grievance process education for all staff on hire and annually','Staff Development Coordinator',14]],
+    mon:{freq:'Weekly',dur:'ongoing',then:'trends to QAPI monthly',tool:'Grievance Log review',by:'Administrator or designee'}},
+  occur:{name:'Occurrence reporting timeliness',tag:'F609',dept:'Administration',src:'Occurrence PIP 3.10.26.docx',drafted:['risk'],
+    problem:'The facility identified an opportunity for improvement in the timeliness and oversight of occurrence reporting. Oversight of reporting timelines has primarily been managed by the NHA or designee, which creates risk for delays if communication or review does not occur promptly.',
+    imm:['NHA/designee sends calendar notification to DON, Social Services Director, Regional Resource and RVPO for every occurrence','Each occurrence reviewed for state / federal reporting criteria'],
+    risk:'All open occurrences were reviewed to confirm leadership notification and reporting timelines were met.',
+    rca:['Oversight of occurrence reporting centralized with the NHA or designee','Interdisciplinary leadership not consistently included in real-time notification','No standardized communication mechanism for immediate leadership awareness','No structured monitoring of reporting timeliness'],
+    goal:'100% compliance with federal reporting timelines (2 hours for abuse / serious bodily injury, 24 hours for all other reportable occurrences).',
+    actions:[['Implement interdisciplinary calendar notification for every occurrence','Administrator / NHA',0],['Standardize occurrence documentation: time identified, time leadership notified, time reported, investigation status','Administrator / NHA',7],['Leadership education on abuse, neglect, exploitation and reporting timelines','Staff Development Coordinator',14]],
+    mon:{freq:'Daily',dur:'90 days',then:'QAPI monthly',tool:'Occurrence tracking log (100% of occurrences)',by:'NHA or designee'}},
+  activ:{name:'Activities timeliness',tag:'F679',dept:'Activities',src:'Activity Timeliness PIP.docx',drafted:[],
+    problem:'Scheduled activities are not consistently starting at their designated times. Activities are frequently delayed, resulting in disruptions to the posted calendar and decreased consistency in resident engagement opportunities.',
+    imm:['Activity calendar reviewed for realistic timing and transitions','Expectations reinforced with Activities staff; staff acknowledgment obtained'],
+    risk:'',
+    rca:['Non-compliance with posted activity schedule','Lack of staff awareness or preparation for scheduled start times','Competing responsibilities or inadequate staffing coverage during activity times','Lack of defined accountability for timely initiation of activities'],
+    goal:'All scheduled activities begin on time as posted, improving consistency, resident satisfaction and compliance with quality-of-life standards. Target: 95–100% of activities begin within 5 minutes of scheduled start for three consecutive months.',
+    actions:[['Assign responsible staff to each scheduled activity; prepare materials in advance','Activity Director',1],['Targeted staff education on timely activity implementation; add to new-hire orientation','Human Resources',1],['Implement reminders / scheduling tools and routine rounds to confirm on-time starts','Activity Director',1]],
+    mon:{freq:'Weekly',dur:'ongoing',then:'reviewed monthly at QAPI or department meeting',tool:'Activity logs, start-time audits and direct observation',by:'Activity Director'}},
+  audit:{name:'Program or documentation audit',tag:'',dept:'Therapy / Pulmonary Program',src:'Pulmonary Program Pip Plan Of Correction.docx',drafted:[],asks:[{k:'program',label:'Which program was audited?',type:'text'},{k:'score',label:'Audit score (%)',type:'text'}],
+    problem:'A [program] audit identified documentation, order management and quality consistency concerns. The overall average audit score was [score]%, indicating opportunities for improvement in documentation accuracy, timeliness, interdisciplinary communication and consistency between physician orders, care plans and program evaluations.',
+    imm:['Tracking log implemented for certifications and physician signatures','Missing physician signatures escalated to the physician and administration'],
+    risk:'',
+    rca:['Inconsistent auditing and follow-up process for program documentation','Lack of standardized documentation workflow for evaluations and monthly reviews','Communication gaps between therapy, nursing, providers and the IDT','Missed verification of physician signatures and certification timelines','Limited double-check process before documentation is finalized'],
+    goal:'Achieve and maintain a program audit score of 90% or greater.',
+    actions:[['Use a standardized evaluation checklist for all initial evaluations with supervisory review before finalizing','Pulmonary Program Coordinator',14],['Review goals, orders and care plans together at admission and monthly IDT','MDS Coordinator',30],['Weekly self-audits using the program scorecard; monthly QA review with nursing leadership','Pulmonary Program Coordinator',0]],
+    mon:{freq:'Weekly',dur:'90 days',then:'monthly QA review; trends to QAPI',tool:'Program scorecard; random IDT note review',by:'Program Coordinator and QA team'}}
+};
+
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const hl=s=>esc(s).replace(/\[([^\]]*)\]/g,'<span class="ph">[$1]</span>');
+const fmt=d=>d?new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
+const addDays=(d,n)=>{const x=new Date(d+'T12:00:00');x.setDate(x.getDate()+n);return x.toISOString().slice(0,10)};
+const GROUPS=[...new Set(FTAGS.map(t=>t.group))].filter(g=>g!=='Definitions');
+let type='POC', step=1, focus=[];
+const TOTAL=11;
+
+// ----- setup -----
+Object.entries(CATS).forEach(([k,c])=>{const o=document.createElement('option');o.value=k;o.textContent=c.name;$('#cat').appendChild(o)});
+ROLES.forEach(r=>{const o=document.createElement('option');o.textContent=r;$('#owner').appendChild(o)});
+$('#roles').innerHTML=ROLES.map(r=>`<button type="button" class="chip" data-r="${esc(r)}">${esc(r)}</button>`).join('');
+$('#roles').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c)c.classList.toggle('on')});
+GROUPS.forEach(g=>{const o=document.createElement('option');o.value=g;o.textContent=g;$('#focusAdd').appendChild(o)});
+$('#focusAdd').addEventListener('change',()=>{const g=$('#focusAdd').value;if(g&&!focus.includes(g))focus.push(g);$('#focusAdd').value='';renderFocus()});
+function renderFocus(){$('#focus').innerHTML=focus.length?focus.map(g=>`<button type="button" class="chip on" data-g="${esc(g)}">${esc(g)} ×</button>`).join(''):'<span class="src">None yet. Pick a tag or add one below.</span>'}
+$('#focus').addEventListener('click',e=>{const c=e.target.closest('.chip');if(c){focus=focus.filter(g=>g!==c.dataset.g);renderFocus()}});
+
+// F-tag list
+function renderTags(q){q=(q||'').trim().toLowerCase();const sel=$('#ftag');const cur=sel.value;sel.innerHTML='';let last='';
+  FTAGS.forEach(t=>{if(q&&!(t.tag.toLowerCase().includes(q)||t.title.toLowerCase().includes(q)||t.group.toLowerCase().includes(q)))return;
+    if(t.group!==last){const og=document.createElement('optgroup');og.label=t.group+(t.reg?' · §'+t.reg:'');sel.appendChild(og);last=t.group}
+    const o=document.createElement('option');o.value=t.tag;o.textContent=`${t.tag} – ${t.title}`;sel.lastElementChild.appendChild(o)});
+  if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;}
+$('#tagSearch').addEventListener('input',e=>renderTags(e.target.value));
+$('#ftag').addEventListener('change',()=>{const t=FTAGS.find(x=>x.tag===$('#ftag').value);if(t&&t.group!=='Definitions'&&!focus.includes(t.group)){focus=[t.group,...focus.filter(g=>g!==t.group)];renderFocus()}});
+function setTag(code){renderTags('');$('#tagSearch').value='';$('#ftag').value=code||'';const t=FTAGS.find(x=>x.tag===code);focus=t?[t.group]:[];renderFocus()}
+
+// type / category
+$('#typeCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;type=c.dataset.t;$$('#typeCards .card').forEach(x=>x.classList.toggle('on',x===c));applyType();applyCat()});
+function applyType(){$$('.poc').forEach(el=>el.hidden=type!=='POC');$$('.pip').forEach(el=>el.hidden=type!=='PIP')}
+function srcLine(c,key){const el=$('#src-'+key);if(!el)return;el.textContent=(c.drafted.includes(key)?'Prefilled with draft wording we wrote (none of your documents cover this).':'Prefilled from your file: '+c.src.replace(' .docx','.docx')+'.')+' This grey line is demo-only so you can see where the wording came from; it will not show in the real app.'}
+function renderAsks(c){$('#asks').innerHTML=(c.asks||[]).map(a=>`<div class="f"><label>${esc(a.label)}</label>${a.type==='select'?`<select data-ask="${esc(a.k)}"><option value="">Choose…</option>${a.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input type="${a.type==='date'?'date':'text'}" data-ask="${esc(a.k)}">`}</div>`).join('')}
+function residentPhrase(){const nums=($('#resid').value.match(/\d+/g)||[]);if(!nums.length)return null;if(nums.length===1)return 'Resident #'+nums[0];return 'Residents '+nums.slice(0,-1).map(n=>'#'+n).join(', ')+' and #'+nums[nums.length-1]}
+function answers(){const a={};const ev=$('#event').value;if(ev)a['event date']=fmt(ev);const r=type==='POC'?residentPhrase():null;if(r)a['resident']=r;
+  $$('#asks [data-ask]').forEach(el=>{let v=el.value.trim();if(!v)return;if(el.type==='date')v=fmt(v);a[el.dataset.ask]=v});return a}
+function fillBox(id,tpl){const box=$('#'+id);if(box.dataset.dirty==='1')return;const a=answers();let n=0;
+  const html=esc(tpl).replace(/\[([^\]]*)\]/g,(m,k)=>{if(a[k]!==undefined){n++;return `<span class="fill">${esc(a[k])}</span>`}return `<span class="ph">[${esc(k)}]</span>`});
+  box.innerHTML=html;const note=$('#note-'+id);if(note)note.hidden=n===0}
+$$('.box').forEach(b=>b.addEventListener('input',()=>{b.dataset.dirty='1'}))
+function checkList(el,items){el.innerHTML=items.map(t=>`<label><input type="checkbox" value="${esc(t)}" checked><span>${hl(t)}</span></label>`).join('')}
+function addAction(a='',r=ROLES[0],days=null){const row=document.createElement('div');row.className='arow';
+  row.innerHTML=`<input placeholder="What changes" value="${esc(a)}"><select>${ROLES.map(x=>`<option ${x===r?'selected':''}>${esc(x)}</option>`).join('')}</select><input type="date" value="${days===null?'':addDays($('#init').value,days)}"><button type="button" class="x" title="Remove">×</button>`;
+  row.querySelector('.x').onclick=()=>row.remove();$('#actions').appendChild(row)}
+$('#addAction').onclick=()=>addAction();
+function applyCat(){const c=CATS[$('#cat').value];
+  $('#dept').value=c.dept;setTag(c.tag);
+  $('#title').value=(type==='POC'?'Plan of Correction – ':'Performance Improvement Plan – ')+c.name.replace(' (draft)','');
+  renderAsks(c);$('#problem').dataset.dirty='0';$('#risk').dataset.dirty='0';fillBox('problem',c.problem);fillBox('risk',c.risk);$('#goal').value=c.goal;
+  checkList($('#immChecks'),c.imm);checkList($('#rcaChecks'),c.rca);
+  $('#actions').innerHTML='';c.actions.forEach(a=>addAction(a[0],a[1],a[2]));
+  $('#mFreq').value=c.mon.freq;$('#mDur').value=c.mon.dur;$('#mThen').value=c.mon.then;$('#mTool').value=c.mon.tool;$('#mBy').value=c.mon.by;
+  $$('#roles .chip').forEach(p=>p.classList.toggle('on',c.actions.some(a=>a[1]===p.dataset.r)||p.dataset.r==='Administrator / NHA'));
+  $('#comp').value=addDays($('#init').value,30);
+  ['problem','imm','risk','goal','rca','actions','mon'].forEach(k=>srcLine(c,k));
+  $$('.dyn').forEach(el=>{const k=el.dataset.dyn;const nm=c.name.replace(' (draft)','').toLowerCase();
+    el.textContent=`This shows up because you picked "${nm}" on screen 1; the grey line under the box says which file it came from.`;
+    if(k!=='imm'&&k!=='problem'&&k!=='risk'&&k!=='goal')el.textContent+=' Want different text here? Tell me what should trigger it on the earlier screens and what it should say, and I\'ll swap it in anytime.'});}
+$('#cat').addEventListener('change',applyCat);
+$('#init').addEventListener('change',()=>{$('#dueTxt').textContent=fmt(addDays($('#init').value,30))});
+
+// ----- stepper -----
+function show(n){step=Math.max(1,Math.min(TOTAL,n));$$('.step').forEach(s=>s.classList.toggle('on',+s.dataset.step===step));
+  $('#stepct').textContent=`Step ${step} of ${TOTAL}`;$('#bar').style.width=(step/TOTAL*100)+'%';
+  $('#back').style.visibility=step===1?'hidden':'visible';$('#next').textContent=step===TOTAL?'Start over':'Next →';$('#pdf').hidden=step!==TOTAL;
+  if(step===3)$('#dueTxt').textContent=fmt(addDays($('#init').value,30));
+  if(step===4||step===6){const c=CATS[$('#cat').value];fillBox('problem',c.problem);fillBox('risk',c.risk)}
+  if(step===2){const sl=$('#ftag');const o=sl.options[sl.selectedIndex];if(o)setTimeout(()=>o.scrollIntoView({block:'center'}),0)}
+  if(step===TOTAL)finish();window.scrollTo({top:0});}
+$('#back').onclick=()=>show(step-1);
+$('#next').onclick=()=>{if(step===TOTAL){location.reload();return}show(step+1)};
+$('#pdf').onclick=()=>{try{window.print()}catch(e){toast('Print is blocked in this preview. In the real app this downloads a PDF.')}};
+
+// ----- finish: checks + document -----
+function finish(){const v=id=>{const el=$('#'+id);return (el.classList.contains('box')?el.innerText:el.value).trim()};const isPOC=type==='POC';
+  const imm=$$('#immChecks input:checked').map(i=>i.value);if(v('immExtra'))imm.push(v('immExtra'));
+  const rca=$$('#rcaChecks input:checked').map(i=>i.value);if(v('rcaExtra'))rca.push(v('rcaExtra'));
+  const acts=$$('#actions .arow').map(r=>[r.children[0].value.trim(),r.children[1].value,r.children[2].value]).filter(a=>a[0]);
+  const roles=$$('#roles .chip.on').map(p=>p.dataset.r);
+  const tag=FTAGS.find(x=>x.tag===$('#ftag').value);
+  const todo=[];const all=[v('problem'),isPOC?v('risk'):v('goal'),...imm,...rca,...acts.map(a=>a[0])].join(' ');
+  const phs=[...new Set(all.match(/\[[^\]]*\]/g)||[])];phs.forEach(p=>todo.push('Fill in '+p));
+  if(isPOC&&!residentPhrase())todo.push('Add the resident number');
+  if(!v('comp'))todo.push('Set the date of compliance');
+  if(!acts.length)todo.push('Add at least one change');
+  if(acts.some(a=>!a[2]))todo.push('Give every change a completion date');
+  if(!v('mBy')||!v('mDur')||!v('mTool')||!v('mTo'))todo.push('Finish the monitoring section (who, how long, tool, results go to)');
+  if(!roles.length)todo.push('Pick at least one responsible person');
+  if(imm.length===0)todo.push('Check at least one immediate action');
+  if(rca.length===0)todo.push('Check at least one root cause');
+  $('#todo').className='todo '+(todo.length?'no':'ok');
+  $('#todo').innerHTML=todo.length?`<h3>${todo.length} thing${todo.length===1?'':'s'} to finish before export</h3><ul>${todo.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:'<h3>Ready to export</h3>Nothing left blank, no placeholders, every change has a date.';
+  $('#pdf').disabled=todo.length>0;
+  const due=fmt(addDays(v('init')||'2026-09-13',30));
+  let h=`<h1>${esc(v('title')||'Untitled plan')}</h1><div class="meta"><b>Facility</b><span>Heights Care and Rehabilitation</span><b>Department</b><span>${esc(v('dept'))}</span>`;
+  if(tag)h+=`<b>Deficiency tag</b><span>${esc(tag.tag)} – ${esc(tag.title)}</span>`;
+  h+=`<b>Regulatory focus</b><span>${focus.length?focus.map(esc).join('; '):'—'}</span><b>Date initiated</b><span>${fmt(v('init'))||'—'}</span>${v('event')?`<b>Event date</b><span>${fmt(v('event'))}</span>`:''}<b>Prepared by</b><span>${esc(v('prep'))}</span>${isPOC?`<b>Resident</b><span>${residentPhrase()?esc(residentPhrase()):'<span class="ph">[resident #]</span>'}</span>`:''}<b>30-day review</b><span>${due}</span></div>`;
+  if(isPOC)h+=`<p>Heights Care and Rehabilitation submits this Plan of Correction as a credible allegation of compliance. This Plan of Correction is not an admission, but a description of corrective actions taken and systemic measures implemented to ensure ongoing compliance with regulatory standards.</p>`;
+  h+=`<h2>${isPOC?'Deficient practice identified':'Problem statement'}</h2><p>${hl(v('problem'))}</p>`;
+  h+=`<h2>${isPOC?'I. Corrective action for the resident(s) affected':'Immediate action'}</h2><ul>${imm.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`;
+  if(isPOC)h+=`<h2>II. Identification of other residents who may be at risk</h2><p>${hl(v('risk'))}</p>`;
+  h+=`<h2>Root cause analysis</h2><ul>${rca.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`;
+  if(!isPOC)h+=`<h2>Performance improvement goal</h2><p>${hl(v('goal'))}</p>`;
+  h+=`<h2>${isPOC?'III. Systemic changes implemented to prevent recurrence':'Action plan'}</h2><table><tr><th>Change</th><th>Responsible party</th><th>Completion date</th></tr>${acts.map(a=>`<tr><td>${hl(a[0])}</td><td>${esc(a[1])}</td><td>${a[2]?fmt(a[2]):'<span class="ph">[date]</span>'}</td></tr>`).join('')}</table>`;
+  h+=`<h2>${isPOC?'IV. Monitoring to ensure ongoing compliance':'Monitoring and QAPI oversight'}</h2><ul><li>${esc(v('mBy'))} will audit ${esc(v('mFreq').toLowerCase())}${v('mDur')?' for '+esc(v('mDur')):''}${v('mThen')?', then '+esc(v('mThen')):''} using: ${esc(v('mTool'))}.</li><li>Results reported to ${esc(v('mTo'))}. The QAPI Committee will evaluate effectiveness and determine whether continued monitoring is needed.</li><li>Identified concerns will be addressed immediately with corrective education.</li></ul>`;
+  h+=`<h2>${isPOC?'V. Date of compliance':'Compliance date'}</h2><p>${fmt(v('comp'))||'<span class="ph">[date]</span>'}</p><h2>Responsible persons</h2><p>${roles.map(esc).join('; ')}</p>`;
+  if(isPOC)h+=`<p class="attest">Heights Care and Rehabilitation asserts that these corrective actions, systemic improvements and monitoring processes have brought the facility into substantial compliance.</p><div class="sig"><div>Administrator signature / date</div><div>Director of Nursing signature / date</div></div>`;
+  else h+=`<div class="sig"><div>Employee signature / date</div><div>Supervisor signature / date</div><div>Department manager / date</div><div>Human Resources / date</div></div>`;
+  $('#doc').innerHTML=h;}
+// ----- pop-out calendar for every date field -----
+const cal=$('#cal');let calFor=null,calY=0,calM=0;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function pad(n){return String(n).padStart(2,'0')}
+function drawCal(){const first=new Date(calY,calM,1);const start=first.getDay();const days=new Date(calY,calM+1,0).getDate();const prevDays=new Date(calY,calM,0).getDate();
+  const sel=calFor&&calFor.value;const today=new Date();const tk=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  let h=`<div class="h"><button type="button" data-nav="-1" aria-label="Previous month">‹</button><span>${MONTHS[calM]} ${calY}</span><button type="button" data-nav="1" aria-label="Next month">›</button></div><div class="g">`;
+  ['Su','Mo','Tu','We','Th','Fr','Sa'].forEach(w=>h+=`<span class="w">${w}</span>`);
+  for(let i=start-1;i>=0;i--)h+=`<button type="button" class="o" disabled>${prevDays-i}</button>`;
+  for(let d=1;d<=days;d++){const k=`${calY}-${pad(calM+1)}-${pad(d)}`;h+=`<button type="button" data-d="${k}" class="${k===sel?'s':''}${k===tk?' t':''}">${d}</button>`}
+  h+=`</div><div class="f"><button type="button" data-today="1">Today</button><button type="button" data-clear="1">Clear</button></div>`;cal.innerHTML=h}
+function openCal(inp){calFor=inp;const v=inp.value?new Date(inp.value+'T12:00:00'):new Date();calY=v.getFullYear();calM=v.getMonth();drawCal();
+  const r=inp.getBoundingClientRect();cal.style.left=Math.max(8,Math.min(r.left+window.scrollX,window.scrollX+document.documentElement.clientWidth-350))+'px';cal.style.top=(r.bottom+window.scrollY+8)+'px';cal.classList.add('open')}
+function closeCal(){cal.classList.remove('open');calFor=null}
+document.addEventListener('click',e=>{const inp=e.target.closest('input[type=date]');if(inp){e.preventDefault();openCal(inp);return}
+  if(!cal.contains(e.target)){closeCal();return}
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.nav){calM+=+b.dataset.nav;if(calM<0){calM=11;calY--}if(calM>11){calM=0;calY++}drawCal();return}
+  const set=v=>{calFor.value=v;calFor.dispatchEvent(new Event('input',{bubbles:true}));calFor.dispatchEvent(new Event('change',{bubbles:true}));closeCal()};
+  if(b.dataset.d)set(b.dataset.d);else if(b.dataset.today){const t=new Date();set(`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`)}else if(b.dataset.clear)set('')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCal()});
+document.addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('input[type=date]'))openCal(e.target)});
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600)}
+
+applyType();applyCat();show(1);
+</script>
+
+</body>
+</html>
