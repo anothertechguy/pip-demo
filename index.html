@@ -169,8 +169,8 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
 
   <!-- 6 -->
   <section class="step" data-step="6">
-    <div class="poc"><h1>Who else is at risk?</h1><p class="lead">How the facility checked whether other residents could be affected.</p><p class="note" id="note-risk" hidden>* Red text was filled in from your answers. Please confirm it before continuing.</p><p class="src" id="src-risk"></p><div class="f"><div class="box" id="risk" contenteditable="true"></div></div></div>
-    <div class="pip"><h1>What's the goal?</h1><p class="lead">What success looks like, in numbers if you can.</p><p class="src" id="src-goal"></p><div class="f"><textarea id="goal"></textarea></div></div>
+    <div><h1>Who else is at risk?</h1><p class="lead">How the facility checked whether other residents could be affected.</p><p class="note" id="note-risk" hidden>* Red text was filled in from your answers. Please confirm it before continuing.</p><p class="src" id="src-risk"></p><div class="f"><div class="box" id="risk" contenteditable="true"></div></div></div>
+    <div style="margin-top:36px"><h1>What's the goal?</h1><p class="lead">What success looks like, in numbers if you can.</p><p class="src" id="src-goal"></p><div class="f"><textarea id="goal"></textarea></div></div>
   </section>
 
   <!-- 7 -->
@@ -362,7 +362,7 @@ function applyCat(){const c=CATS[$('#cat').value];
   $('#title').value=(type==='POC'?'Plan of Correction – ':'Performance Improvement Plan – ')+c.name.replace(' (draft)','');
   renderAsks(c);$('#problem').dataset.dirty='0';$('#risk').dataset.dirty='0';fillBox('problem',c.problem);fillBox('risk',c.risk);$('#goal').value=c.goal;
   checkList($('#immChecks'),c.imm);checkList($('#rcaChecks'),c.rca);
-  $('#actions').innerHTML='';c.actions.forEach(a=>addAction(a[0],a[1],a[2]));
+  $('#actions').innerHTML='';c.actions.forEach(a=>addAction(a[0],a[1],null));
   $('#mFreq').value=c.mon.freq;$('#mDur').value=c.mon.dur;$('#mThen').value=c.mon.then;$('#mTool').value=$('#title').value;$('#mBy').value=c.mon.by;
   $$('#roles .chip').forEach(p=>p.classList.toggle('on',c.actions.some(a=>a[1]===p.dataset.r)||p.dataset.r==='Administrator / NHA'));
   $('#comp').value=addDays($('#init').value,30);
@@ -394,7 +394,7 @@ function finish(){const v=id=>{const el=$('#'+id);return (el.classList.contains(
   const acts=$$('#actions .arow').map(r=>[r.querySelector('textarea').value.trim(),r.querySelector('.who').value.trim(),r.querySelector('input[type=date]').value]).filter(a=>a[0]);
   const roles=$$('#roles .chip.on').map(p=>p.dataset.r);
   const tag=FTAGS.find(x=>x.tag===$('#ftag').value);
-  const todo=[];const all=[v('problem'),isPOC?v('risk'):v('goal'),...imm,...rca,...acts.map(a=>a[0])].join(' ');
+  const todo=[];const all=[v('problem'),v('risk'),v('goal'),...imm,...rca,...acts.map(a=>a[0])].join(' ');
   const phs=[...new Set(all.match(/\[[^\]]*\]/g)||[])];phs.forEach(p=>todo.push('Fill in '+p));
   if(isPOC&&!residentPhrase())todo.push('Add the resident number');
   if(!v('comp'))todo.push('Set the date of compliance');
@@ -414,9 +414,9 @@ function finish(){const v=id=>{const el=$('#'+id);return (el.classList.contains(
   if(isPOC)h+=`<p>Heights Care and Rehabilitation submits this Plan of Correction as a credible allegation of compliance. This Plan of Correction is not an admission, but a description of corrective actions taken and systemic measures implemented to ensure ongoing compliance with regulatory standards.</p>`;
   h+=`<h2>${isPOC?'Deficient practice identified':'Problem statement'}</h2><p>${hl(v('problem'))}</p>`;
   h+=`<h2>${isPOC?'I. Corrective action for the resident(s) affected':'Immediate action'}</h2><ul>${imm.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`;
-  if(isPOC)h+=`<h2>II. Identification of other residents who may be at risk</h2><p>${hl(v('risk'))}</p>`;
+  if(isPOC||v('risk'))h+=`<h2>${isPOC?'II. Identification of other residents who may be at risk':'Other residents at risk'}</h2><p>${hl(v('risk'))}</p>`;
   h+=`<h2>Root cause analysis</h2><ul>${rca.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`;
-  if(!isPOC)h+=`<h2>Performance improvement goal</h2><p>${hl(v('goal'))}</p>`;
+  if(!isPOC||v('goal'))h+=`<h2>Performance improvement goal</h2><p>${hl(v('goal'))}</p>`;
   h+=`<h2>${isPOC?'III. Systemic changes implemented to prevent recurrence':'Action plan'}</h2><table><tr><th>Task</th><th>Person Responsible</th><th>Completion date</th></tr>${acts.map(a=>`<tr><td>${hl(a[0])}</td><td>${esc(a[1])}</td><td>${a[2]?fmt(a[2]):'<span class="ph">[date]</span>'}</td></tr>`).join('')}</table>`;
   h+=`<h2>${isPOC?'IV. Monitoring to ensure ongoing compliance':'Monitoring'}</h2><ul><li><strong>Name of POC/PIP:</strong> ${esc(v('mTool'))}</li><li><strong>Audited by:</strong> ${esc(v('mBy'))}</li><li><strong>How often:</strong> ${esc(v('mFreq'))}${v('mDur')?', for '+esc(v('mDur')):''}${v('mThen')?', then '+esc(v('mThen')):''}</li><li><strong>Progress to be reviewed at:</strong> ${esc(v('mTo'))}</li><li>Any identified concerns will be addressed immediately.</li></ul>`;
   h+=`<h2>${isPOC?'V. Date of compliance':'Compliance date'}</h2><p>${fmt(v('comp'))||'<span class="ph">[date]</span>'}</p><h2>Responsible persons</h2><p>${roles.map(esc).join('; ')}</p>`;
