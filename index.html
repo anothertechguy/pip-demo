@@ -137,7 +137,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
     <p class="lead">These get filled into the plan wording on the next screens.</p><div class="callout"><b>Sam, from Sean:</b>New box below, "What did the facility identify?" It replaces the second sentence of the concern on the next screen. Leave it blank and the original wording stays. Right now it is on abuse, falls and medication. Do you want it on every concern?</div>
     <div class="row">
       <div class="f"><label>Event date</label><input type="date" id="event"></div>
-      <div class="f poc"><label>Resident number(s)</label><input id="resid" placeholder="e.g. 12, or 12 and 14 — never a name"></div>
+      <div class="f"><label>Resident number(s)</label><input id="resid" placeholder="e.g. 12, or 12 and 14 — never a name"></div>
     </div>
     <div id="asks"></div>
     <div class="row">
@@ -345,7 +345,7 @@ function applyType(){$$('.poc').forEach(el=>el.hidden=type!=='POC');$$('.pip').f
 function srcLine(c,key){const el=$('#src-'+key);if(!el)return;el.textContent=(c.drafted.includes(key)?'Prefilled with draft wording we wrote (none of your documents cover this).':'Prefilled from your file: '+c.src.replace(' .docx','.docx')+'.')+' This grey line is demo-only so you can see where the wording came from; it will not show in the real app.'}
 function renderAsks(c){$('#asks').innerHTML=(c.asks||[]).map(a=>`<div class="f"><label>${esc(a.label)}</label>${a.type==='select'?`<select data-ask="${esc(a.k)}"><option value="">Choose…</option>${a.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input type="${a.type==='date'?'date':'text'}" data-ask="${esc(a.k)}" placeholder="${esc(a.ph||'')}">`}</div>`).join('')}
 function residentPhrase(){const nums=($('#resid').value.match(/\d+/g)||[]);if(!nums.length)return null;if(nums.length===1)return 'Resident #'+nums[0];return 'Residents '+nums.slice(0,-1).map(n=>'#'+n).join(', ')+' and #'+nums[nums.length-1]}
-function answers(){const a={};const ev=$('#event').value;if(ev)a['event date']=fmt(ev);const r=type==='POC'?residentPhrase():null;if(r)a['resident']=r;
+function answers(){const a={};const ev=$('#event').value;if(ev)a['event date']=fmt(ev);const r=residentPhrase();if(r)a['resident']=r;
   $$('#asks [data-ask]').forEach(el=>{let v=el.value.trim();if(!v)return;if(el.type==='date')v=fmt(v);if(el.dataset.ask==='identification'){v=v.charAt(0).toUpperCase()+v.slice(1);if(!/[.!?]$/.test(v))v+='.'}a[el.dataset.ask]=v});return a}
 function fillBox(id,tpl){const box=$('#'+id);if(box.dataset.dirty==='1')return;const a=answers();let n=0;const defs={};(CATS[$('#cat').value].asks||[]).forEach(x=>{if(x.def)defs[x.k]=x.def});
   const html=esc(tpl).replace(/\[([^\]]*)\]/g,(m,k)=>{if(a[k]!==undefined){n++;return `<span class="fill">${esc(a[k])}</span>`}if(defs[k]!==undefined)return esc(defs[k]);return `<span class="ph">[${esc(k)}]</span>`});
@@ -410,7 +410,7 @@ function finish(){const v=id=>{const el=$('#'+id);return (el.classList.contains(
   const due=fmt(addDays(v('init')||'2026-09-13',30));
   let h=`<h1>${esc(v('title')||'Untitled plan')}</h1><div class="meta"><b>Facility</b><span>Heights Care and Rehabilitation</span><b>Department</b><span>${esc(v('dept'))}</span>`;
   if(tag)h+=`<b>Deficiency tag</b><span>${esc(tag.tag)} – ${esc(tag.title)}</span>`;
-  h+=`<b>Regulatory focus</b><span>${focus.length?focus.map(esc).join('; '):'—'}</span><b>Date initiated</b><span>${fmt(v('init'))||'—'}</span>${v('event')?`<b>Event date</b><span>${fmt(v('event'))}</span>`:''}<b>Prepared by</b><span>${esc(v('prep'))}</span>${isPOC?`<b>Resident</b><span>${residentPhrase()?esc(residentPhrase()):'<span class="ph">[resident #]</span>'}</span>`:''}<b>30-day review</b><span>${due}</span></div>`;
+  h+=`<b>Regulatory focus</b><span>${focus.length?focus.map(esc).join('; '):'—'}</span><b>Date initiated</b><span>${fmt(v('init'))||'—'}</span>${v('event')?`<b>Event date</b><span>${fmt(v('event'))}</span>`:''}<b>Prepared by</b><span>${esc(v('prep'))}</span>${residentPhrase()?`<b>Resident</b><span>${esc(residentPhrase())}</span>`:isPOC?`<b>Resident</b><span><span class="ph">[resident #]</span></span>`:''}<b>30-day review</b><span>${due}</span></div>`;
   if(isPOC)h+=`<p>Heights Care and Rehabilitation submits this Plan of Correction as a credible allegation of compliance. This Plan of Correction is not an admission, but a description of corrective actions taken and systemic measures implemented to ensure ongoing compliance with regulatory standards.</p>`;
   h+=`<h2>${isPOC?'Deficient practice identified':'Problem statement'}</h2><p>${hl(v('problem'))}</p>`;
   h+=`<h2>${isPOC?'I. Corrective action for the resident(s) affected':'Immediate action'}</h2><ul>${imm.map(x=>`<li>${hl(x)}</li>`).join('')}</ul>`;
