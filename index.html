@@ -102,7 +102,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
 .doc .attest{font-style:italic;color:var(--ink2);margin-top:18px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:99px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
-@media print{body *{visibility:hidden}body[data-print="plan"] #doc,body[data-print="plan"] #doc *{visibility:visible}body[data-print="plan"] #doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0}body[data-print="review"] #reviewDoc,body[data-print="review"] #reviewDoc *{visibility:visible}body[data-print="review"] #reviewDoc{display:block;position:absolute;left:0;top:0;width:100%;border:0;padding:0}body[data-print="signin"] #signin,body[data-print="signin"] #signin *{visibility:visible}body[data-print="signin"] #signin{position:absolute;left:0;top:0;width:100%;border:0;padding:0}.editlink,.signbtn{display:none!important}}
+@media print{body *{visibility:hidden}body[data-print="plan"] #doc,body[data-print="plan"] #doc *{visibility:visible}body[data-print="plan"] #doc{position:absolute;left:0;top:0;width:100%;border:0;padding:0}body[data-print="review"] #reviewDoc,body[data-print="review"] #reviewDoc *{visibility:visible}body[data-print="review"] #reviewDoc{display:block;position:absolute;left:0;top:0;width:100%;border:0;padding:0}body[data-print="signin"] #signin,body[data-print="signin"] #signin *{visibility:visible}body[data-print="signin"] #signin{position:absolute;left:0;top:0;width:100%;border:0;padding:0}.editlink,.signbtn,#signin .btn,#signin button{display:none!important}}
 .sig div{position:relative}.sig .sigimg{display:block;height:46px;margin-bottom:2px}.sig .signed{font-size:11px;color:var(--muted)}.signbtn{display:inline-block;margin-top:6px;border:0;background:none;color:var(--brand);font-weight:800;font-size:13px;cursor:pointer;text-decoration:underline;padding:0}
 .sigpad{position:fixed;inset:0;background:rgba(10,20,20,.45);display:none;align-items:center;justify-content:center;z-index:60}.sigpad.open{display:flex}.sigpad .box{background:#fff;border-radius:var(--r);padding:22px;width:min(680px,94vw)}.sigpad h3{margin:0 0 6px;font-size:22px;font-weight:800}.sigpad p{margin:0 0 12px;color:var(--ink2)}.sigpad canvas{display:block;width:100%;height:200px;border:2px dashed var(--line);border-radius:12px;background:#fff;touch-action:none}.sigpad .row{display:flex;justify-content:space-between;margin-top:14px}
 .nrow{grid-template-columns:1fr 160px 300px}.ndates{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0 8px}.ndates .chip{padding:6px 12px;font-size:14px}.ndates .src{margin:0}
@@ -115,7 +115,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
 </head>
 <body>
 <div class="wrap">
-  <div class="top"><div class="brand">Heights Plan Builder<span class="demo">DEMO</span><small>Heights Care and Rehabilitation · yellow boxes are notes from Sean</small></div><div class="stepct" id="stepct"></div></div>
+  <div class="top"><div class="brand">Heights Plan Builder<span class="demo">DEMO</span><small>Heights Care and Rehabilitation · yellow boxes are notes from Sean · <span id="saved">autosaves in this browser</span></small></div><div class="stepct" id="stepct"></div></div>
   <div class="bar"><i id="bar"></i></div>
 
   <!-- 1 -->
@@ -291,13 +291,13 @@ const CATS = {
     imm:['Resident assessed for injury; neuro checks initiated per protocol','Physician and responsible party notified','Post-fall huddle completed and immediate cause addressed','Care plan updated with new fall interventions'],
     risk:'A facility-wide review of residents at high fall risk was completed, including fall-risk assessments, care-plan interventions and environmental hazards. Identified concerns were corrected immediately.',
     rca:['Fall-risk assessment not updated after change in condition','Care-plan interventions not consistently implemented','Environmental hazards (lighting, footwear, call light placement)','Staffing / rounding frequency during high-risk times'],
-    goal:'Reduce falls with injury by [__]% and achieve 100% post-fall huddle completion.',
+    goal:'Reduce falls with injury and achieve 100% post-fall huddle completion.',
     actions:[['Re-educate nursing staff on fall-risk assessment and post-fall protocol','Staff Development Coordinator',14],['Audit high-risk residents for care-plan interventions in place','Director of Nursing',7]],
     mon:{freq:'Weekly',dur:'30 days',then:'Reviewed Monthly at QAPI for 3 months',tool:'Fall audit tool; incident reports',by:'DON or designee'}},
   meds:{name:'Medication administration (draft)',tag:'F760',dept:'Nursing',src:'',drafted:['problem','imm','risk','rca','goal','actions','mon'],asks:[{k:'error type',label:'Type of error',type:'select',opts:['omission','wrong dose','wrong time','wrong medication','wrong resident']},{k:'identification',label:'What did the facility identify?',type:'text',ph:'e.g. The med pass was interrupted.',def:'The facility identified opportunities to improve medication administration practices and verification.'}],
     problem:'On [event date], a medication error involving [resident] was identified ([error type]). [identification]',
     imm:['Resident assessed; physician and responsible party notified','Medication administration record reviewed and corrected','Involved staff removed from med pass pending competency validation'],
-    risk:'A facility-wide MAR audit was completed for residents receiving [drug class / all residents]. Identified concerns were corrected immediately.',
+    risk:'A facility-wide medication administration record audit was completed for all residents. Identified concerns were corrected immediately.',
     rca:['Interruptions during medication pass','Transcription / order entry errors','Competency gaps for new or agency nurses'],
     goal:'Zero significant medication errors, verified by med-pass observation audits.',
     actions:[['Complete medication administration competency for all licensed nurses','Staff Development Coordinator',14],['Implement med-pass observation audits','Director of Nursing',7]],
@@ -418,7 +418,7 @@ function show(n){step=Math.max(1,Math.min(TOTAL,n));$$('.step').forEach(s=>s.cla
   if(step===2){const sl=$('#ftag');const o=sl.options[sl.selectedIndex];if(o)setTimeout(()=>o.scrollIntoView({block:'center'}),0)}
   if(step===11)finish();window.scrollTo({top:0});}
 $('#back').onclick=()=>{fromReview=false;show(step-1)};
-$('#next').onclick=()=>{if(step===TOTAL){location.reload();return}if(fromReview&&step<11){fromReview=false;show(11);return}show(step+1)};
+$('#next').onclick=()=>{if(step===TOTAL){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}if(fromReview&&step<11){fromReview=false;show(11);return}show(step+1)};
 function jump(n){fromReview=true;show(n)}
 document.addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j)jump(+j.dataset.jump)});
 function printAs(mode){document.body.dataset.print=mode;const done=()=>{delete document.body.dataset.print;window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);try{window.print()}catch(e){done();toast('Print is blocked in this preview. In the real app this downloads a PDF.')}setTimeout(done,3000)}
@@ -497,11 +497,34 @@ document.addEventListener('click',e=>{const inp=e.target.closest('input[type=dat
   if(calMulti){if(b.dataset.d){const i=calMulti.dates.indexOf(b.dataset.d);if(i>=0)calMulti.dates.splice(i,1);else calMulti.dates.push(b.dataset.d);drawCal();calMulti.onChange()}else if(b.dataset.clear){calMulti.dates.length=0;drawCal();calMulti.onChange()}else if(b.dataset.done)closeCal();return}
   const set=v=>{calFor.value=v;calFor.dispatchEvent(new Event('input',{bubbles:true}));calFor.dispatchEvent(new Event('change',{bubbles:true}));closeCal()};
   if(b.dataset.d)set(b.dataset.d);else if(b.dataset.today){const t=new Date();set(`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`)}else if(b.dataset.clear)set('')});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCal();$('#sigpad').classList.remove('open')}});
 document.addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('input[type=date]'))openCal(e.target)});
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2600)}
 
-applyType();applyCat();show(1);
+// ----- autosave to this browser (demo only; no server) -----
+const SKEY='hpb-demo-v1';let saveT=null;
+function snapshot(){const f={};$$('input[id],select[id],textarea[id]').forEach(el=>{if(el.type==='checkbox'||el.type==='radio')f[el.id]=el.checked;else f[el.id]=el.value});
+  return {v:1,type,cat:$('#cat').value,step,f,asks:$$('#asks [data-ask]').map(el=>[el.dataset.ask,el.value]),boxes:{problem:[$('#problem').innerHTML,$('#problem').dataset.dirty],risk:[$('#risk').innerHTML,$('#risk').dataset.dirty]},
+    checks:{imm:$$('#immChecks input').map(i=>i.checked),rca:$$('#rcaChecks input').map(i=>i.checked)},actions:$$('#actions .arow').map(r=>[r.querySelector('textarea').value,r.querySelector('.who').value,r.querySelector('input[type=date]').value]),
+    roles:$$('#roles .chip.on').map(c=>c.dataset.r),notif:$$('#notif .nrow').map(r=>[r.dataset.r,r.querySelector('.ntype').value,r.querySelector('.nfreq').value]),customDates,focus,sigs:SIGS,rvo:[...document.querySelectorAll('input[name=rvo]')].findIndex(r=>r.checked)}}
+function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(SKEY,JSON.stringify(snapshot()));const t=new Date();$('#saved').textContent='saved '+t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}catch(e){$('#saved').textContent='could not save in this browser'}},300)}
+function restore(d){try{
+  type=d.type;$$('#typeCards .card').forEach(c=>c.classList.toggle('on',c.dataset.t===type));applyType();
+  $('#cat').value=d.cat;applyCat();
+  Object.entries(d.f||{}).forEach(([id,v])=>{const el=document.getElementById(id);if(!el||id==='cat')return;if(el.type==='checkbox'||el.type==='radio')el.checked=!!v;else el.value=v});
+  (d.asks||[]).forEach(([k,v])=>{const el=$(`#asks [data-ask="${k}"]`);if(el)el.value=v});
+  if($('#ftag').value)renderTags('');focus=Array.isArray(d.focus)?d.focus:[];renderFocus();
+  ['problem','risk'].forEach(k=>{const b=$('#'+k);const [html,dirty]=d.boxes?.[k]||['', '0'];if(dirty==='1'){b.innerHTML=html;b.dataset.dirty='1'}else{b.dataset.dirty='0'}});
+  const c=CATS[d.cat];fillBox('problem',c.problem);fillBox('risk',c.risk);
+  $$('#immChecks input').forEach((i,k)=>{if(d.checks?.imm?.[k]!==undefined)i.checked=d.checks.imm[k]});$$('#rcaChecks input').forEach((i,k)=>{if(d.checks?.rca?.[k]!==undefined)i.checked=d.checks.rca[k]});
+  $('#actions').innerHTML='';(d.actions||[]).forEach(a=>{addAction(a[0],a[1],null);const r=$('#actions').lastElementChild;r.querySelector('input[type=date]').value=a[2]||''});
+  $$('#roles .chip').forEach(ch=>ch.classList.toggle('on',(d.roles||[]).includes(ch.dataset.r)));Object.assign(customDates,d.customDates||{});renderNotif();
+  (d.notif||[]).forEach(([who,t,f])=>{const r=$$('#notif .nrow').find(x=>x.dataset.r===who);if(r){r.querySelector('.ntype').value=t;r.querySelector('.nfreq').value=f;renderDates(r)}});
+  Object.assign(SIGS,d.sigs||{});if(d.rvo>=0){const rs=document.querySelectorAll('input[name=rvo]');if(rs[d.rvo])rs[d.rvo].checked=true}
+  show(Math.min(Math.max(1,d.step||1),TOTAL));return true}catch(e){console.error('restore failed',e);return false}}
+document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('click',e=>{if(e.target.closest('.wrap, #cal, #sigpad'))save()});
+let restored=false;try{const raw=localStorage.getItem(SKEY);if(raw)restored=restore(JSON.parse(raw))}catch(e){}
+if(!restored){applyType();applyCat();show(1)}
 </script>
 
 </body>
