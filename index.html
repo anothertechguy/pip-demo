@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap">
 <style>
 :root{--bg:#FFFFFF;--ink:#243038;--ink2:#4F5D69;--muted:#7A8792;--line:#E3E9EE;--soft:#F3F7FA;--brand:#1E9E88;--brand-ink:#FFFFFF;--brand-soft:#E4F6F1;--sun:#FFF3CF;--sun-ink:#8A6300;--rose:#FDE7E7;--rose-ink:#B03A3A;--ok:#2F8F5B;--r:14px;--font:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
-*{box-sizing:border-box}
+*{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 var(--font);font-weight:500}
 button,input,select,textarea{font:inherit;color:inherit}
 h1,h2,h3{margin:0;text-wrap:balance}
@@ -108,7 +108,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
 .nrow{grid-template-columns:1fr 160px 300px}.ndates{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0 8px}.ndates .chip{padding:6px 12px;font-size:14px}.ndates .src{margin:0}
 #signin{display:none;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;font-size:13pt;padding:40px}#signin.show{display:block;border:2px solid var(--line);border-radius:var(--r);margin-top:16px}#signin h2{text-align:center;font-size:15pt;margin:0 0 14px;color:#000}#signin p{margin:4px 0}#signin table{width:100%;border-collapse:collapse;margin-top:12px}#signin th,#signin td{border:1px solid #000;padding:6px 8px;height:28px;text-align:left}#signin th{background:#eee}#signin .reg{border:1px solid #000;padding:8px 10px;margin:10px 0}
 #reviewDoc{display:none}
-@media (max-width:700px){.row,.cards{grid-template-columns:1fr}.arow .two{grid-template-columns:1fr}h1{font-size:30px}.wrap{padding:18px 16px 60px}}
+@media (max-width:700px){.row,.cards{grid-template-columns:1fr}.arow .two{grid-template-columns:1fr}.nrow{grid-template-columns:1fr}.uploads{grid-template-columns:1fr}.sig{grid-template-columns:1fr!important}.sigpad .box{padding:14px}.btns{flex-wrap:wrap}h1{font-size:30px}.wrap{padding:18px 16px 60px}}
 @media (prefers-reduced-motion:reduce){.bar i,.toast{transition:none}}
 </style>
 
@@ -417,7 +417,7 @@ function show(n){step=Math.max(1,Math.min(TOTAL,n));$$('.step').forEach(s=>s.cla
   if(step===8)$$('#actions textarea').forEach(grow);
   if(step===2){const sl=$('#ftag');const o=sl.options[sl.selectedIndex];if(o)setTimeout(()=>o.scrollIntoView({block:'center'}),0)}
   if(step===11)finish();window.scrollTo({top:0});}
-$('#back').onclick=()=>show(step-1);
+$('#back').onclick=()=>{fromReview=false;show(step-1)};
 $('#next').onclick=()=>{if(step===TOTAL){location.reload();return}if(fromReview&&step<11){fromReview=false;show(11);return}show(step+1)};
 function jump(n){fromReview=true;show(n)}
 document.addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j)jump(+j.dataset.jump)});
