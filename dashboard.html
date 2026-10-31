@@ -56,7 +56,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <a class="new" href="index.html">+ New / Create</a>
   </div>
 
-  <div class="callout"><b>Sam, from Sean:</b>Built from your Oct 25 note. Navigation is top left: Dashboard, POC, PIP, Occurrences, Users, Settings/Notifications. "New / Create" opens the form. The dashboard has one section per product, each with its own show/hide, and Occurrences is a placeholder until the tracker exists. Every number is still sample data except the duplicate example from your two elopement POCs. Tell me what to add, cut or move.</div>
+  <div class="callout"><b>Sam, from Sean:</b>Navigation is top left: Dashboard, POC, PIP, Occurrences, Users, Settings/Notifications. "New / Create" opens the form. One section per product, each with its own show/hide. The Occurrences section now reads from the new occurrence tracker (sample entries, residents by number). Every other number is sample data except the duplicate example from your two elopement POCs.</div>
 
   <!-- DASHBOARD -->
   <div data-view="dash">
@@ -93,8 +93,9 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 
       <!-- Occurrence product section -->
       <div class="section" data-sec="occ">
-        <div class="sechead"><h2 class="sec"><i style="background:#B9C3CC"></i>Occurrences</h2><span class="muted">Shows for facilities that subscribe to the tracker</span></div>
-        <div class="soon"><b>Occurrence tracker, coming next</b>Trends, dates and quantities of occurrences, plus a quick reference list of what was submitted. This section fills in once the tracker is built.</div>
+        <div class="sechead"><h2 class="sec"><i style="background:#B5651D"></i>Occurrences</h2><a class="new" href="occurrences.html" style="font-size:15px;padding:8px 16px">Open the occurrence tracker →</a></div>
+        <div class="kpis" id="kpiOcc"></div>
+        <div class="grid"><div class="panel" ><h3>By type, this year</h3><p class="sub">From what's logged in the tracker.</p><svg id="occChart"></svg></div><div class="panel"><h3>Waiting on the state portal</h3><p class="sub">Logged here, not finished in COHFI yet.</p><table id="occOpen"></table></div></div>
       </div>
     </div>
 
@@ -123,8 +124,10 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 
   <!-- OCCURRENCES -->
   <div data-view="occ" hidden>
-    <h1>Occurrences</h1><p class="lead">The occurrence tracker is the next product.</p>
-    <div class="soon"><b>Coming soon</b>A simple form per occurrence, a log you can search, and a dashboard of trends, dates and quantities.</div>
+    <h1>Occurrences</h1><p class="lead">A holding place for state-reportable occurrences: log it here when it happens, copy it into the COHFI portal when there's time.</p>
+    <div class="kpis" id="kpiOcc2"></div>
+    <div class="panel"><table id="occAll"></table></div>
+    <p><a class="new" href="occurrences.html">Open the occurrence tracker →</a></p>
   </div>
 
   <!-- USERS -->
@@ -146,7 +149,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <h1>Settings / Notifications</h1><p class="lead">Facility-wide defaults. Each person can override their own reminders under Users.</p>
     <div class="panel form">
       <div class="f"><label>Facility</label><input value="Heights Care and Rehabilitation" readonly></div>
-      <div class="f"><label>Products</label><span>Plans of Correction ✓ &nbsp; PIPs ✓ &nbsp; Occurrence tracker (coming soon)</span></div>
+      <div class="f"><label>Products</label><span>Plans of Correction ✓ &nbsp; PIPs ✓ &nbsp; Occurrence tracker ✓</span></div>
       <div class="f"><label>Review schedule</label><input value="30, 60 and 90 days after the plan starts" readonly></div>
       <div class="f"><label>Default reminder</label><select><option>3 days before and day of</option><option>Day of only</option><option>7, 3 and 1 days before, and day of</option><option>Every day for the week before</option></select></div>
       <div class="f"><label>Default reminder type</label><select><option>Email</option><option>Text message</option><option>Email and text</option></select></div>
@@ -158,6 +161,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
   </div>
 </div>
 
+<script src="occ-seed.js"></script>
 <script>
 // One list of sample plans. Every count, chart and table on this page is computed from it, so nothing can disagree.
 // Only the two elopement POCs (Jan and May 29) come from Sam's documents; the rest are made up to show the shape.
@@ -218,6 +222,17 @@ const BC={poc:{done:[1,1,1,1,1,1,1,1,1,1],prog:[1,1,1,1,1,0,1,0,0,1]},pip:{done:
 const hs={poc:series('POC'),pip:series('PIP')};const add=(a,b)=>a.map((v,i)=>v+b[i]);
 monthChart('monthCorp',[{done:add(hs.poc.done,BC.poc.done),prog:add(hs.poc.prog,BC.poc.prog),c1:'#1E9E88',c2:'#A8DED2'},{done:add(hs.pip.done,BC.pip.done),prog:add(hs.pip.prog,BC.pip.prog),c1:'#3B6FB6',c2:'#BBD0EC'}],300);
 document.getElementById('overCorp').innerHTML='<tr><th>Building</th><th>Plan</th><th>Type</th><th>Next review</th><th>Status</th></tr>'+ALL.flatMap(b=>b.overdue.map(o=>`<tr><td>${esc(b.name.replace(' Care and Rehabilitation',''))}</td><td>${esc(o[0])}</td><td>${o[1]}</td><td>${fmt(o[2])}</td><td><span class="st over">Overdue ${-days(TODAY,o[2])}d</span></td></tr>`)).join('');
+// occurrences: same data the tracker uses (browser copy if it exists, else the seed)
+(function(){const TYPES={phys:'Physical Abuse',sex:'Sexual Abuse',verb:'Verbal Abuse',neg:'Neglect',miss:'Missing Person'};let OCC=[];try{const raw=localStorage.getItem('hpb-occ-v1');OCC=raw?JSON.parse(raw):(window.OCC_SEED||[])}catch(e){OCC=window.OCC_SEED||[]}
+  const yr=String(new Date().getFullYear());const li=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');const t0=li(new Date());const fd=o=>{if(!o.portal.initialEntered)return '';const x=new Date(o.portal.initialEntered+'T12:00:00');x.setDate(x.getDate()+5);return li(x)};
+  const st=o=>{if(o.portal.finalEntered)return ['done','Complete'];if(!o.portal.initialEntered)return ['due','Initial not in portal'];const n=days(t0,fd(o));return n<0?['over',`Final overdue ${-n}d`]:['ok',`Final due ${fmt(fd(o))}`]};
+  const ty=OCC.filter(o=>(o.initial.occDT||o.created).startsWith(yr));const open=OCC.filter(o=>!o.portal.finalEntered);const over=open.filter(o=>st(o)[0]==='over');const notIn=open.filter(o=>!o.portal.initialEntered);
+  const k=`<div class="kpi"><div class="v" style="color:#B5651D">${ty.length}</div><div class="l">Occurrences this year</div></div><div class="kpi warn"><div class="v">${notIn.length}</div><div class="l">Initial not in portal yet</div></div><div class="kpi crit"><div class="v">${over.length}</div><div class="l">Final reports overdue</div></div><div class="kpi"><div class="v">${open.length}</div><div class="l">Open</div></div>`;
+  document.getElementById('kpiOcc').innerHTML=k;document.getElementById('kpiOcc2').innerHTML=k;
+  const data=Object.keys(TYPES).map(x=>[TYPES[x],ty.filter(o=>o.type===x).length]);const W=520,rowH=36,L=150;const max=Math.max(1,...data.map(d=>d[1]));let s='';data.forEach((d,i)=>{const yy=14+i*rowH;const w=(d[1]/max)*(W-L-70);s+=`<text x="${L-10}" y="${yy+22}" font-size="14" text-anchor="end" fill="#243038" font-weight="700">${d[0]}</text><rect x="${L}" y="${yy+6}" width="${Math.max(w,2)}" height="22" rx="6" fill="#B5651D"/><text x="${L+w+8}" y="${yy+22}" font-size="14" fill="#243038" font-weight="800">${d[1]}</text>`});const el=document.getElementById('occChart');el.setAttribute('viewBox',`0 0 ${W} ${14+data.length*rowH+10}`);el.innerHTML=s;
+  const row=o=>{const [c,t]=st(o);const d=o.initial.occDT?new Date(o.initial.occDT).toLocaleDateString('en-US',{month:'short',day:'numeric'}):fmt(o.created);return `<tr><td>${d}</td><td>${TYPES[o.type]||'—'}</td><td>${esc((o.victims||[]).map(v=>v.nameId).filter(Boolean).join(', ')||'—')}</td><td><span class="st ${c}">${t}</span></td></tr>`};
+  document.getElementById('occOpen').innerHTML='<tr><th>Date</th><th>Type</th><th>Resident</th><th>Status</th></tr>'+(open.map(row).join('')||'<tr><td colspan="4">Nothing waiting.</td></tr>');
+  document.getElementById('occAll').innerHTML='<tr><th>Date</th><th>Type</th><th>Resident</th><th>Status</th></tr>'+OCC.map(row).join('');})();
 // nav + toggles
 document.getElementById('nav').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('[data-view]').forEach(v=>v.hidden=v.dataset.view!==b.dataset.v);window.scrollTo({top:0})});
 document.getElementById('view').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));document.getElementById('facility').classList.toggle('hide',b.dataset.v!=='facility');document.getElementById('corporate').classList.toggle('hide',b.dataset.v!=='corporate')});
