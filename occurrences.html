@@ -58,7 +58,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <button type="button" class="btn primary" id="newBtn">+ New occurrence</button>
   </div>
 
-  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for the five categories you asked for. Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Two things I left out on purpose: resident names and dates of birth (numbers only in our system, you add the name in the portal). Tell me if you want them in.</div>
+  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for the five categories you asked for. Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Resident names and dates of birth are kept out on purpose: residents are numbers only in our system, and you add the name and birth date in the portal when you paste.</div>
 
   <!-- LIST -->
   <div id="vList">
@@ -109,9 +109,8 @@ const INITIAL=[
   {id:'otherAgency',label:'Other Agency:',type:'text',req:true,showIf:a=>(a.agencies||[]).includes(OTHER_AG)}
 ];
 const PERSON_COMMON=t=>[
-  {id:'nameId',label:'Name/ID',type:'text',req:true,sub:'Resident number only in our system. Add the name in the portal.'},
-  {id:'gender',label:'Gender',type:'select',opts:['Male','Female','Other']},
-  {id:'dob',label:'Date Of Birth',type:'date',sub:'Optional here; the portal asks for it.'},
+  {id:'nameId',label:'Name/ID',type:'text',req:true,sub:'Resident number only, never a name. The portal also asks for the name and date of birth; type those there.'},
+  {id:'gender',label:'Gender',type:'text',ph:'As listed in the portal'},
   {id:'age',label:'Age at the time of occurrence',type:'num'},
   {id:'cognitive',label:'Provide cognitive status as relevant to this occurrence',type:'ta'},
   {id:'physical',label:'Provide physical status as relevant to this occurrence',type:'ta'}];
@@ -123,50 +122,49 @@ const VICTIM=t=>t==='miss'?[...PERSON_COMMON(t),
   {id:'safetyPlanDesc',label:'Describe the safety plan',type:'ta',showIf:a=>a.elopeHist==='Yes'&&a.safetyPlan==='Yes'},
   {id:'respSelf',label:'Is the consumer responsible for self?',type:'yn'},
   {id:'status',label:'Status of the time of elopement',type:'select',opts:['Voluntary','Involuntary M1-Hold','Involuntary Short-Term Certification','Involuntary Long-Term Certification','Other']}
-]:[...PERSON_COMMON(t),
+]:t==='neg'?PERSON_COMMON(t):[...PERSON_COMMON(t),
   {id:'histBeh',label:`Does the ${V(t)} have a history of behaviors?`,type:'yn'},
   {id:'behDesc',label:'Provide a description of the behaviors',type:'ta',showIf:a=>a.histBeh==='Yes'},
   {id:'carePlan',label:`Is there a care plan for the ${V(t)}'s behaviors?`,type:'yn',showIf:a=>a.histBeh==='Yes'},
   {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>a.histBeh==='Yes'&&a.carePlan==='Yes'},
   {id:'other12',label:`Has the ${V(t)} been involved in any other occurrences in the past 12 months?`,type:'yn'},
   {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>a.other12==='Yes'}];
-const isStaff=a=>a.rel==='Staff member'||a.rel==='Other service provider';
+// Portal rules (from its own question map): "Describe Other" only for Other/Unknown; consumer block only for Consumer;
+// ID/Name, Title, License (and Gender on abuse types) for Staff member or Other service provider; background checks and
+// staff "other occurrences" for Staff member only. Neglect's assailant form has no consumer block except the 12-month question, and no staff gender.
+const isStaff=a=>a.rel==='Staff member'||a.rel==='Other service provider';const isStaffOnly=a=>a.rel==='Staff member';const isCon=a=>a.rel==='Consumer';
 const ASSAILANT=t=>[
   {id:'rel',label:'Relationship to licensee',type:'select',opts:['Consumer','Staff member','Other service provider','Family','Visitor','Other/Unknown'],req:true},
-  // consumer
-  {id:'nameId',label:'Name/ID',type:'text',showIf:a=>a.rel==='Consumer',sub:'Resident number only.'},
-  {id:'gender',label:'Gender',type:'select',opts:['Male','Female','Other'],showIf:a=>a.rel==='Consumer'},
-  {id:'dob',label:'Date Of Birth',type:'date',showIf:a=>a.rel==='Consumer'},
-  {id:'age',label:'Age at the time of occurrence',type:'num',showIf:a=>a.rel==='Consumer'},
-  {id:'cognitive',label:'Cognitive status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:a=>a.rel==='Consumer'},
-  {id:'physical',label:'Physical status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:a=>a.rel==='Consumer'},
-  {id:'histBeh',label:'Does the alleged assailant have a history of behaviors?',type:'yn',showIf:a=>a.rel==='Consumer'},
-  {id:'behDesc',label:'Provide a description of the behaviors.',type:'ta',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'},
-  {id:'carePlan',label:"Is there a care plan for the alleged assailant's behaviors?",type:'yn',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'},
-  {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'&&a.carePlan==='Yes'},
-  {id:'other12',label:'Has the alleged assailant been involved in any other occurrences in the past 12 months?',type:'yn',showIf:a=>a.rel==='Consumer'},
-  {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>a.rel==='Consumer'&&a.other12==='Yes'},
+  {id:'describe',label:'Describe Other',type:'ta',showIf:a=>a.rel==='Other/Unknown'},
+  // consumer (not on Neglect)
+  ...(t==='neg'?[]:[
+  {id:'nameId',label:'Name/ID',type:'text',showIf:isCon,sub:'Resident number only, never a name.'},
+  {id:'gender',label:'Gender',type:'text',showIf:isCon,ph:'As listed in the portal'},
+  {id:'age',label:'Age at the time of occurrence',type:'num',showIf:isCon},
+  {id:'cognitive',label:'Cognitive status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:isCon},
+  {id:'physical',label:'Physical status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:isCon},
+  {id:'histBeh',label:'Does the alleged assailant have a history of behaviors?',type:'yn',showIf:isCon},
+  {id:'behDesc',label:'Provide a description of the behaviors.',type:'ta',showIf:a=>isCon(a)&&a.histBeh==='Yes'},
+  {id:'carePlan',label:"Is there a care plan for the alleged assailant's behaviors?",type:'yn',showIf:a=>isCon(a)&&a.histBeh==='Yes'},
+  {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>isCon(a)&&a.histBeh==='Yes'&&a.carePlan==='Yes'}]),
+  {id:'other12',label:'Has the alleged assailant been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isCon},
+  {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isCon(a)&&a.other12==='Yes'},
   // staff / other service provider
   {id:'staffId',label:'ID/Name of the staff person involved',type:'text',showIf:isStaff},
-  {id:'sgender',label:'Gender',type:'select',opts:['Male','Female','Other'],showIf:isStaff},
+  ...(t==='neg'?[]:[{id:'sgender',label:'Gender',type:'text',showIf:isStaff,ph:'As listed in the portal'}]),
   {id:'title',label:'Title',type:'text',showIf:isStaff},
   {id:'license',label:'License/certification number',type:'text',showIf:isStaff},
-  {id:'bg',label:'Were background checks completed?',type:'yn',showIf:isStaff},
-  {id:'bgYes',label:'Describe any problems identified and the plan for supervision',type:'ta',showIf:a=>isStaff(a)&&a.bg==='Yes'},
-  {id:'bgNo',label:'Explain why background checks were not conducted',type:'ta',showIf:a=>isStaff(a)&&a.bg==='No'},
-  {id:'ref',label:'Were reference checks completed on the staff person?',type:'yn',showIf:isStaff},
-  {id:'refYes',label:'Describe any problems identified and the plan for supervision',type:'ta',showIf:a=>isStaff(a)&&a.ref==='Yes'},
-  {id:'refNo',label:'Explain why reference checks were not conducted',type:'ta',showIf:a=>isStaff(a)&&a.ref==='No'},
-  {id:'sother12',label:'Has the staff member been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isStaff},
-  {id:'sother12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isStaff(a)&&a.sother12==='Yes'},
-  // family / visitor / other
-  {id:'describe',label:'Describe Other',type:'ta',showIf:a=>['Family','Visitor','Other/Unknown'].includes(a.rel)}
+  {id:'bg',label:'Were background checks completed?',type:'yn',showIf:isStaffOnly},
+  {id:'bgYes',label:'Describe any problems identified and the plan for supervision',type:'ta',showIf:a=>isStaffOnly(a)&&a.bg==='Yes'},
+  {id:'bgNo',label:'Explain why background checks were not conducted',type:'ta',showIf:a=>isStaffOnly(a)&&a.bg==='No'},
+  {id:'sother12',label:'Has the staff member been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isStaffOnly},
+  {id:'sother12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isStaffOnly(a)&&a.sother12==='Yes'}
 ];
 const WITNESS=[
   {id:'witnessed',label:'Was the occurrence witnessed?',type:'yn'},
   {id:'who',label:'Who witnessed the occurrence?',type:'checks',opts:['Staff Member(s)','Visitor','Consumer','Other'],showIf:a=>a.witnessed==='Yes'},
   {id:'staffNames',label:'Provide Staff Member(s) Name/ID and Title',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Staff Member(s)')},
-  {id:'consumerNames',label:'Provide Consumer Name(s)/ID',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Consumer')},
+  {id:'consumerNames',label:'Provide Consumer Name(s)/ID',type:'ta',sub:'Resident numbers only.',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Consumer')},
   {id:'otherWitness',label:'Describe Other Witness',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Other')}];
 function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
   S.push({name:'Description',fields:t==='miss'?[
@@ -185,10 +183,13 @@ function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
   if(t==='miss')inv.push({id:'grounds',label:'Was a grounds search conducted?',type:'yn'},{id:'whereabouts',label:"Is the consumer's whereabouts known?",type:'yn'},{id:'located',label:'Describe and provide date/time of when the consumer was located.',type:'ta',showIf:a=>a.whereabouts==='Yes'},{id:'hours',label:'How many hours was the consumer missing?',type:'num'});
   inv.push({id:'assessed',label:`Was the ${v} assessed?`,type:'yn'},{id:'assWho',label:'Who conducted an assessment?',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhen',label:t==='miss'||t==='neg'?'When was an assessment conducted?':'When was the assessment conducted?',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assFindings',label:'Describe assessment findings',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhyNot',label:`Explain why ${t==='miss'||t==='neg'?'consumer':'the victim'} was not assessed`,type:'ta',showIf:a=>a.assessed==='No'});
   inv.push({id:'treatment',label:`Was treatment provided to the ${v}?`,type:'yn'},{id:'treatDesc',label:'Describe the treatment',type:'ta',showIf:a=>a.treatment==='Yes'});
-  if(t==='phys')inv.push({id:'injured',label:'Was the consumer/victim injured?',type:'yn'},{id:'injuryDesc',label:'Describe the injury',type:'ta',showIf:a=>a.injured==='Yes'},{id:'injuryTreat',label:'Describe the treatment',type:'ta',showIf:a=>a.injured==='Yes'});
+  if(t==='phys')inv.push({id:'injured',label:'Was the consumer/victim injured?',type:'yn',showIf:(a,ctx)=>ctx.assailants.some(isCon)},{id:'injuryDesc',label:'Describe the injury',type:'ta',showIf:(a,ctx)=>ctx.assailants.some(isCon)&&a.injured==='Yes'});
   inv.push({id:'transferred',label:`Was the ${v} transferred to a higher level of care?`,type:'yn'},{id:'transferDetails',label:'Provide transfer details',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'hospTreat',label:t==='miss'||t==='neg'?'What treatment was provided in the hospital?':'What treatment was provided?',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'returned',label:`Did the ${v} return to ${t==='miss'||t==='neg'?'previous':'the previous'} level of care?`,type:'yn',showIf:a=>a.transferred==='Yes'},{id:'whyNotReturn',label:`Why did the ${v} not return to the previous level of care?`,type:'ta',showIf:a=>a.transferred==='Yes'&&a.returned==='No'});
+  if(t==='neg')inv.push({id:'treatAlso',label:'What treatment was provided?',type:'ta',sub:'The portal shows this on Neglect as well as the hospital question above.'});
   inv.push({id:'status',label:`Current status of ${v}`,type:'ta'});
+  if(t==='neg')inv.push({id:'statusVictim',label:'Current status of victim',type:'ta',sub:'The portal shows this on Neglect right after "Current status of consumer".'});
   if(AN.includes(t)){inv.push({id:'interviewed',label:`Was the ${v} interviewed?`,type:'yn'},{id:'intResults',label:'Provide the results of the interview',type:'ta',showIf:a=>a.interviewed==='Yes'},{id:'whyNotInt',label:`Why was the ${v} not interviewed?`,type:'ta',showIf:a=>a.interviewed==='No'});
+    if(t==='sex')inv.push({id:'behav2',label:'Describe any behavioral changes observed',type:'ta'});
     inv.push({id:'behav',label:t==='verb'||t==='neg'?'Describe any behavioral changes observed':'Describe any non-verbal responses and/or behavioral changes observed',type:'ta'});
     inv.push({id:'assailantInt',label:'Was the alleged assailant interviewed by management?',type:'yn'},{id:'assailantResults',label:'Provide results of interview.',type:'ta',showIf:a=>a.assailantInt==='Yes'});
     if(t==='neg')inv.push({id:'docReviewInt',label:'Provide results of documentation review and interviews',type:'ta'},{id:'docReview',label:'Provide the results of documentation review',type:'ta'});
@@ -197,12 +198,13 @@ function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
   inv.push({id:'policies',label:'Were policies and procedures followed?',type:'yn'},{id:'deviation',label:'Describe deviation from policies and procedures',type:'ta',showIf:a=>a.policies==='No'},{id:'conclusion',label:'Provide the conclusion of the internal investigation',type:'ta'});
   S.push({name:'Investigation',fields:inv});
   const fa=[{id:'victimChanges',label:`Describe any changes made to the ${v}'s treatment regimen and/or care plan as a result of the occurrence${ABUSE.includes(t)?'.':''}`,type:'ta'}];
-  if(ABUSE.includes(t))fa.push({id:'assailantConsumerChanges',label:"What changes were made to the alleged assailant's treatment regimen and/or care plan as a result of the occurrence?",type:'ta',showIf:(a,ctx)=>ctx.assailants.some(x=>x.rel==='Consumer')});
+  if(ABUSE.includes(t))fa.push({id:'assailantConsumerChanges',label:"What changes were made to the alleged assailant's treatment regimen and/or care plan as a result of the occurrence?",type:'ta'});
   if(AN.includes(t))fa.push({id:'assailantStaffActions',label:'In response to the conclusion of the investigation, what actions were taken with the alleged assailant?',type:'ta',showIf:(a,ctx)=>ctx.assailants.some(isStaff)});
   fa.push({id:'interventions',label:'Describe interventions that were put into place to help prevent a recurrence',type:'ta'});
   S.push({name:'Facility Actions',fields:fa});
-  const no=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'text'},{id:'officer',label:'Police Officer Name',type:'text'}];
-  if(AN.includes(t))no.push({id:'officerPhone',label:'Police Officer telephone number',type:'tel'},{id:'caseNo',label:'Case/Referral Number',type:'text'},{id:'policeDT',label:'Date and Time Police was notified',type:'dt'});
+  const pol=a=>(a.notified||[]).includes('Police');
+  const no=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'text',showIf:pol},{id:'officer',label:'Police Officer Name',type:'text',showIf:pol}];
+  if(AN.includes(t))no.push({id:'officerPhone',label:'Police Officer telephone number',type:'tel',showIf:pol},{id:'caseNo',label:'Case/Referral Number',type:'text',showIf:pol},{id:'policeDT',label:'Date and Time Police was notified',type:'dt',showIf:pol});
   S.push({name:'Notifications',fields:no});
   return S}
 
@@ -308,7 +310,7 @@ function copyBlocks(){const o=cur;const blocks=[];const missing=[];
   return {blocks,missing}}
 function blockText(b){return b.name.toUpperCase()+'\n'+b.lines.map(l=>l.q+'\n'+(l.a||'(blank)')).join('\n\n')}
 function renderCopy(){const {blocks,missing}=copyBlocks();const td=$('#copyTodo');td.className='todo '+(missing.length?'no':'ok');td.innerHTML=missing.length?`<b>${missing.length} required portal field${missing.length===1?'':'s'} still blank:</b><ul>${missing.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>`:'<b>Every required portal field has an answer.</b> Optional ones left blank show as (blank) below.';
-  $('#copyview').innerHTML=`<h3>${esc(TYPES[cur.type]||'Occurrence')} · Heights Care and Rehabilitation · logged ${fmtD(cur.created)}</h3>`+blocks.map((b,i)=>`<h3>${esc(b.name)}<button type="button" class="btn sm" data-copy="${i}">Copy section</button></h3>`+b.lines.map(l=>`<div class="q">${esc(l.q)}</div><div class="a${l.a?'':' empty'}">${esc(l.a||'(blank)')}</div>`).join('')).join('');
+  $('#copyview').innerHTML=`<h3>${esc(TYPES[cur.type]||'Occurrence')} · Heights Care and Rehabilitation · logged ${fmtD(cur.created)}</h3><div class="a" style="color:var(--ink2)">Residents are numbers here. The portal will also ask for each resident's name and date of birth; type those straight into the portal.</div>`+blocks.map((b,i)=>`<h3>${esc(b.name)}<button type="button" class="btn sm" data-copy="${i}">Copy section</button></h3>`+b.lines.map(l=>`<div class="q">${esc(l.q)}</div><div class="a${l.a?'':' empty'}">${esc(l.a||'(blank)')}</div>`).join('')).join('');
   $('#copyview').onclick=e=>{const b=e.target.closest('[data-copy]');if(b)copyText(blockText(blocks[+b.dataset.copy]),'Section copied.')};
   $('#copyAll').onclick=()=>copyText(blocks.map(blockText).join('\n\n\n'),'Everything copied, in portal order.')}
 function copyText(t,msg){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(msg)).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg)}catch(e){toast('Copy blocked here; select the text and copy by hand.')}ta.remove()})}
