@@ -58,7 +58,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <button type="button" class="btn primary" id="newBtn">+ New occurrence</button>
   </div>
 
-  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for the five categories you asked for. Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Resident names and dates of birth are kept out on purpose: residents are numbers only in our system, and you add the name and birth date in the portal when you paste.</div>
+  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for your five categories, plus the five others Heights has filed before (Misappropriation of Property, Equipment Malfunction, Brain Injury, Diverted Drugs, Death). Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Resident names and dates of birth are kept out on purpose: residents are numbers only in our system, and you add the name and birth date in the portal when you paste.</div>
 
   <!-- LIST -->
   <div id="vList">
@@ -86,13 +86,14 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 <script src="occ-seed.js"></script>
 <script>
 // ---------- portal vocabulary (verbatim from COHFI, Oct 30 2026) ----------
-const TYPES={phys:'Physical Abuse',sex:'Sexual Abuse',verb:'Verbal Abuse',neg:'Neglect',miss:'Missing Person'};
-const ABUSE=['phys','sex','verb'],AN=['phys','sex','verb','neg'],ALL=['phys','sex','verb','neg','miss'];
+const TYPES={phys:'Physical Abuse',sex:'Sexual Abuse',verb:'Verbal Abuse',neg:'Neglect',miss:'Missing Person',misap:'Misappropriation of Property',equip:'Equipment Malfunction',brain:'Brain Injury',drugs:'Diverted Drugs',death:'Death'};
+const ABUSE=['phys','sex','verb'],AN=['phys','sex','verb','neg','misap','drugs'],ALL=['phys','sex','verb','neg','miss','misap','equip','brain','drugs','death'];
+// Not offered: Burns, Equipment Misuse, Life Threatening Anesthesia Complications or Reactions, Life Threatening Transfusion Reaction or Error, Spinal Cord Injury. Heights has never filed one, so there is no live record to copy the questions from.
 const AGENCIES=['Police','Family/Guardian','Ombudsman','Physician','Adult Protective Services','Child Protective Services (CPS)','Board of Nursing','Board of Medical Examiners','Board of Pharmacy','Licensing Board - Other','Coroner','Food and Drug Administration','Drug Enforcement Administration','Manufacturer','Other (provide a description or identify entity or agency)'];
 const OTHER_AG=AGENCIES[14];
 const YN=['Yes','No'];
 // v = victim/consumer word by type
-const V=t=>t==='miss'||t==='neg'?'consumer':'victim';
+const V=t=>ABUSE.includes(t)?'victim':'consumer';
 const Vc=t=>V(t).charAt(0).toUpperCase()+V(t).slice(1);
 
 // Field: {id,label,type:'text'|'ta'|'yn'|'select'|'checks'|'dt'|'date'|'num'|'tel'|'email', opts, req, showIf:(answers,ctx)=>bool, types:[...]}
@@ -114,7 +115,7 @@ const PERSON_COMMON=t=>[
   {id:'age',label:'Age at the time of occurrence',type:'num'},
   {id:'cognitive',label:'Provide cognitive status as relevant to this occurrence',type:'ta'},
   {id:'physical',label:'Provide physical status as relevant to this occurrence',type:'ta'}];
-const VICTIM=t=>t==='miss'?[...PERSON_COMMON(t),
+const VICTIM_BASE=t=>t==='miss'?[...PERSON_COMMON(t),
   {id:'hist',label:'Does the consumer have a history of the following? (Select all that apply)',type:'checks',opts:['Mental Illness','Intellectual/Developmental Disability','Substance Abuse',"Dementia/Alzheimer's Disease",'Homelessness','Other']},
   {id:'histOther',label:'Describe other',type:'text',showIf:a=>(a.hist||[]).includes('Other')},
   {id:'elopeHist',label:'Does the consumer have a history of elopement?',type:'yn'},
@@ -133,7 +134,7 @@ const VICTIM=t=>t==='miss'?[...PERSON_COMMON(t),
 // ID/Name, Title, License (and Gender on abuse types) for Staff member or Other service provider; background checks and
 // staff "other occurrences" for Staff member only. Neglect's assailant form has no consumer block except the 12-month question, and no staff gender.
 const isStaff=a=>a.rel==='Staff member'||a.rel==='Other service provider';const isStaffOnly=a=>a.rel==='Staff member';const isCon=a=>a.rel==='Consumer';
-const ASSAILANT=t=>[
+const ASSAILANT_BASE=t=>[
   {id:'rel',label:'Relationship to licensee',type:'select',opts:['Consumer','Staff member','Other service provider','Family','Visitor','Other/Unknown'],req:true},
   {id:'describe',label:'Describe Other',type:'ta',showIf:a=>a.rel==='Other/Unknown'},
   // consumer (not on Neglect)
@@ -151,7 +152,7 @@ const ASSAILANT=t=>[
   {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isCon(a)&&a.other12==='Yes'},
   // staff / other service provider
   {id:'staffId',label:'ID/Name of the staff person involved',type:'text',showIf:isStaff},
-  ...(t==='neg'?[]:[{id:'sgender',label:'Gender',type:'text',showIf:isStaff,ph:'As listed in the portal'}]),
+  ...(ABUSE.includes(t)?[{id:'sgender',label:'Gender',type:'text',showIf:isStaff,ph:'As listed in the portal'}]:[]),
   {id:'title',label:'Title',type:'text',showIf:isStaff},
   {id:'license',label:'License/certification number',type:'text',showIf:isStaff},
   {id:'bg',label:'Were background checks completed?',type:'yn',showIf:isStaffOnly},
@@ -166,14 +167,14 @@ const WITNESS=[
   {id:'staffNames',label:'Provide Staff Member(s) Name/ID and Title',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Staff Member(s)')},
   {id:'consumerNames',label:'Provide Consumer Name(s)/ID',type:'ta',sub:'Resident numbers only.',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Consumer')},
   {id:'otherWitness',label:'Describe Other Witness',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Other')}];
-function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
+function FINAL_BASE(t){const v=V(t),vc=Vc(t);const S=[];
   S.push({name:'Description',fields:t==='miss'?[
     {id:'desc',label:'Describe what occurred',type:'ta',req:true},
     {id:'location',label:'Consumer location at the time of elopement?',type:'select',opts:['Unsecured Unit','Secured unit','Emergency department','Community pass','Other']},
     {id:'locOther',label:'Describe Other Elopement Location',type:'ta',showIf:a=>a.location==='Other'},
     {id:'oversight',label:'What level of staff oversight was in place at the time of elopement?',type:'select',opts:['1:1','Line of sight','Frequent checks','Other','None']},
     {id:'ovOther',label:'Describe other elopement oversight',type:'ta',showIf:a=>a.oversight==='Other'},
-    {id:'identifiedMissing',label:'What date/time was the consumer identified as missing?',type:'dt'},
+    {id:'identifiedMissing',label:'What date/time was the consumer identified as missing?',type:'ta',sub:'Free text in the portal, not a date picker.'},
     {id:'lastObserved',label:'When was the consumer last observed by staff?',type:'dt'},
     ...WITNESS,
     {id:'risk',label:"What was the consumer's risk level at the time of elopement?",type:'checks',opts:['At risk to self','At risk to others','Not at risk']},
@@ -203,10 +204,87 @@ function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
   fa.push({id:'interventions',label:'Describe interventions that were put into place to help prevent a recurrence',type:'ta'});
   S.push({name:'Facility Actions',fields:fa});
   const pol=a=>(a.notified||[]).includes('Police');
-  const no=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'text',showIf:pol},{id:'officer',label:'Police Officer Name',type:'text',showIf:pol}];
-  if(AN.includes(t))no.push({id:'officerPhone',label:'Police Officer telephone number',type:'tel',showIf:pol},{id:'caseNo',label:'Case/Referral Number',type:'text',showIf:pol},{id:'policeDT',label:'Date and Time Police was notified',type:'dt',showIf:pol});
+  const no=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'ta',showIf:pol},{id:'officer',label:'Police Officer Name',type:'text',showIf:pol}];
+  if(AN.includes(t))no.push({id:'officerPhone',label:'Police Officer telephone number',type:'tel',showIf:pol},{id:'caseNo',label:'Case/Referral Number',type:'ta',showIf:pol},{id:'policeDT',label:'Date and Time Police was notified',type:'dt',showIf:pol});
   S.push({name:'Notifications',fields:no});
   return S}
+
+
+// ---------- the five other types Heights has filed (maps in portal-question-map/) ----------
+const WITNESS_NO_CONSUMER=WITNESS.filter(f=>f.id!=='consumerNames');
+const YNU=['Yes','No','Unknown'];
+const ASSESS=(whoType='ta')=>[{id:'assessed',label:'Was the consumer assessed?',type:'yn'},{id:'assWho',label:'Who conducted an assessment?',type:whoType,showIf:a=>a.assessed==='Yes'},{id:'assWhen',label:'When was an assessment conducted?',type:whoType,showIf:a=>a.assessed==='Yes'}];
+const NOTIFY4=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'ta',showIf:a=>(a.notified||[]).includes('Police')},{id:'officer',label:'Police Officer Name',type:'text',showIf:a=>(a.notified||[]).includes('Police')}];
+const NOTIFY7=[...NOTIFY4,{id:'officerPhone',label:'Police Officer telephone number',type:'tel',showIf:a=>(a.notified||[]).includes('Police')},{id:'caseNo',label:'Case/Referral Number',type:'ta',showIf:a=>(a.notified||[]).includes('Police')},{id:'policeDT',label:'Date and Time Police was notified',type:'dt',showIf:a=>(a.notified||[]).includes('Police')}];
+const POLICIES=[{id:'policies',label:'Were policies and procedures followed?',type:'yn'},{id:'deviation',label:'Describe deviation from policies and procedures',type:'ta',showIf:a=>a.policies==='No'}];
+const CONCL={id:'conclusion',label:'Provide the conclusion of the internal investigation',type:'ta'};
+const INV3=[{id:'invDate',label:'Date investigation started',type:'date'},{id:'actions',label:'Describe the investigative actions taken.',type:'ta'},{id:'keptSafe',label:'How were the consumers kept safe during the investigation?',type:'ta'}];
+const TREAT=[{id:'treatment',label:'Was treatment provided to the consumer?',type:'yn'},{id:'treatDesc',label:'Describe the treatment',type:'ta',showIf:a=>a.treatment==='Yes'}];
+const CHANGES={id:'victimChanges',label:"Describe any changes made to the consumer's treatment regimen and/or care plan as a result of the occurrence",type:'ta'};
+const INTERV={id:'interventions',label:'Describe interventions that were put into place to help prevent a recurrence',type:'ta'};
+const STAFFACT={id:'assailantStaffActions',label:'In response to the conclusion of the investigation, what actions were taken with the alleged assailant?',type:'ta',showIf:(a,ctx)=>ctx.assailants.some(isStaff)};
+const ASSAILANT_INT=[{id:'assailantInt',label:'Was the alleged assailant interviewed by management?',type:'yn'},{id:'assailantResults',label:'Provide results of interview.',type:'ta',showIf:a=>a.assailantInt==='Yes'}];
+const OTHERS={id:'othersSummary',label:'Provide a brief summary of the interviews conducted with other consumers and staff as relevant to the investigation',type:'ta'};
+const DOCREV={id:'docReview',label:'Provide the results of documentation review',type:'ta'};
+const DOCREVINT={id:'docReviewInt',label:'Provide results of documentation review and interviews',type:'ta'};
+const VICTIM_EXTRA={
+  misap:()=>PERSON_COMMON('misap'),
+  equip:()=>PERSON_COMMON('equip'),
+  brain:()=>[...PERSON_COMMON('brain'),{id:'fallsHist',label:'Did the consumer have a known history of falls?',type:'yn'},{id:'safetyInt',label:'Describe safety interventions',type:'ta',showIf:a=>a.fallsHist==='Yes'}],
+  drugs:()=>[PERSON_COMMON('drugs')[0],PERSON_COMMON('drugs')[1],PERSON_COMMON('drugs')[2],{id:'medHist',label:'Provide medical history as relevant to this occurrence',type:'ta'}],
+  death:()=>[{id:'nameId',label:'Decedent Full Name',type:'text',req:true,sub:'Resident number only, never a name. Type the name in the portal.'},PERSON_COMMON('death')[1],PERSON_COMMON('death')[2],{id:'medHist',label:"Provide decedent's medical history",type:'ta'}]
+};
+const ASSAILANT_EXTRA={
+  drugs:()=>[
+    {id:'rel',label:'Relationship to licensee',type:'select',opts:['Consumer','Staff member','Other service provider','Family','Visitor','Other/Unknown'],req:true},
+    {id:'describe',label:'Describe Other',type:'ta',showIf:a=>a.rel==='Other/Unknown'},
+    {id:'nameId',label:'Name/ID',type:'text',showIf:isCon,sub:'Resident number only, never a name.'},
+    {id:'age',label:'Age at the time of occurrence',type:'num',showIf:isCon},
+    {id:'cogPhys',label:'Cognitive/Physical Status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:isCon},
+    {id:'histBeh',label:'Does the alleged assailant have a history of behaviors?',type:'yn',showIf:isCon},
+    {id:'behDesc',label:'Provide a description of the behaviors.',type:'ta',showIf:a=>isCon(a)&&a.histBeh==='Yes'},
+    {id:'carePlan',label:"Is there a care plan for the alleged assailant's behaviors?",type:'yn',showIf:a=>isCon(a)&&a.histBeh==='Yes'},
+    {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>isCon(a)&&a.histBeh==='Yes'&&a.carePlan==='Yes'},
+    {id:'other12',label:'Has the alleged assailant been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isCon},
+    {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isCon(a)&&a.other12==='Yes'},
+    {id:'staffId',label:'ID/Full Name of staff person involved',type:'text',showIf:isStaff},
+    {id:'title',label:'Title',type:'text',showIf:isStaff},
+    {id:'license',label:'License/certification number',type:'num',showIf:isStaff},
+    {id:'sother12',label:'Has the staff member been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isStaffOnly},
+    {id:'sother12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isStaffOnly(a)&&a.sother12==='Yes'},
+    {id:'suspicious',label:'Were any suspicious behaviors observed?',type:'yn',showIf:isStaff},
+    {id:'suspiciousDesc',label:'Describe the suspicious behaviors.',type:'ta',showIf:a=>isStaff(a)&&a.suspicious==='Yes'}]
+};
+const FINAL_EXTRA={
+  misap:()=>[
+    {name:'Description',fields:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},...WITNESS,{id:'finExploit',label:'Is financial exploitation of the consumer suspected?',type:'yn'},{id:'dischargeRisk',label:'Is the consumer at risk of being discharged due to non-payment?',type:'yn',showIf:a=>a.finExploit==='Yes'}]},
+    {name:'Investigation',fields:[...INV3,{id:'lastAccounted',label:'When and where was the property last accounted for?',type:'ta'},{id:'pattern',label:'Has there been a pattern of misappropriation of property?',type:'yn'},{id:'patternDesc',label:'Describe the pattern of misappropriation',type:'ta',showIf:a=>a.pattern==='Yes'},...ASSAILANT_INT,OTHERS,DOCREV,...POLICIES,CONCL]},
+    {name:'Facility Actions',fields:[CHANGES,STAFFACT,INTERV]},
+    {name:'Notifications',fields:NOTIFY7}],
+  equip:()=>[
+    {name:'Description',fields:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},{id:'usage',label:'How was the equipment being used?',type:'ta'},{id:'removed',label:'Was the equipment removed from service?',type:'yn'},{id:'serviceDates',label:'Provide dates removed and put back into service',type:'ta',showIf:a=>a.removed==='Yes'},{id:'inspected',label:'Was the equipment inspected?',type:'yn'},{id:'inspector',label:'Who inspected equipment?',type:'ta',showIf:a=>a.inspected==='Yes'},{id:'inspResults',label:'What were the results of the equipment inspection?',type:'ta',showIf:a=>a.inspected==='Yes'},{id:'typeAge',label:'Equipment type and age',type:'ta'},{id:'serial',label:'Equipment Serial Number',type:'ta'},{id:'model',label:'Equipment Model Number',type:'ta'},{id:'manufacturer',label:"Manufacturer's Name, Address, and Phone Number",type:'ta'},{id:'prevProblems',label:'Describe any previous problems encountered with this equipment',type:'ta'},{id:'maintainer',label:'Who maintains the equipment?',type:'ta'},{id:'lastService',label:'Date of last service/preventive maintenance',type:'date'},{id:'lastServiceBy',label:'Who performed last service/preventive maintenance?',type:'text'},...WITNESS]},
+    {name:'Investigation',fields:[...INV3,...ASSESS(),{id:'assFindings',label:'Describe assessment findings',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhyNot',label:'Explain why consumer was not assessed',type:'ta',showIf:a=>a.assessed==='No'},...TREAT,{id:'transferred',label:'Was the consumer transferred to a higher level of care?',type:'yn'},{id:'transferDetails',label:'Provide transfer details',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'returned',label:'Did the consumer return to previous level of care?',type:'yn',showIf:a=>a.transferred==='Yes'},{id:'whyNotReturn',label:'Why did the consumer not return to the previous level of care?',type:'ta',showIf:a=>a.transferred==='Yes'&&a.returned==='No'},{id:'status',label:'Current status of consumer',type:'ta'},OTHERS,DOCREV,...POLICIES,{id:'guidelines',label:'Were manufacturer and/or facility guidelines being applied?',type:'yn'},{id:'guidelinesDev',label:'Describe deviation from policies and procedures',type:'ta',showIf:a=>a.guidelines==='No'},{id:'trained',label:'Was the user properly trained in using the equipment?',type:'yn'},{id:'trainingDate',label:'What was the date of the training?',type:'date',showIf:a=>a.trained==='Yes'},{id:'competency',label:'How was competency demonstrated?',type:'ta',showIf:a=>a.trained==='Yes'},{id:'whyNoTraining',label:'Why was training not provided?',type:'ta',showIf:a=>a.trained==='No'},{id:'similar',label:'Has the staff member/provider been involved in similar occurrences in the past 12 months?',type:'yn'},{id:'similarDesc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>a.similar==='Yes'},CONCL]},
+    {name:'Facility Actions',fields:[INTERV]},
+    {name:'Notifications',fields:NOTIFY4}],
+  brain:()=>[
+    {name:'Description',fields:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},...WITNESS,{id:'discovery',label:'How did the licensee discover the occurrence?',type:'ta',showIf:a=>a.witnessed==='No'}]},
+    {name:'Investigation',fields:[INV3[0],INV3[1],...ASSESS(),{id:'whatAssess',label:'Describe what assessments were completed.',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assFindings',label:'Describe assessment findings',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhyNot',label:'Explain why consumer was not assessed',type:'ta',showIf:a=>a.assessed==='No'},...TREAT,{id:'transferred',label:'Was the consumer transferred to a higher level of care?',type:'yn'},{id:'transferDetails',label:'Provide transfer details',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'diagnostics',label:'Describe what diagnostic tests were conducted and the results',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'hospTreat',label:'What treatment was provided in the hospital?',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'returned',label:'Did the consumer return to previous level of care?',type:'yn',showIf:a=>a.transferred==='Yes'},{id:'whyNotReturn',label:'Why did the consumer not return to the previous level of care?',type:'ta',showIf:a=>a.transferred==='Yes'&&a.returned==='No'},{id:'status',label:'Current status of consumer, including any functional status changes',type:'ta'},DOCREVINT,{id:'safetyFollowed',label:'Were safety interventions followed?',type:'yn'},...POLICIES,CONCL]},
+    {name:'Facility Actions',fields:[CHANGES,INTERV]},
+    {name:'Notifications',fields:NOTIFY4}],
+  drugs:()=>[
+    {name:'Description',fields:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},{id:'medDesc',label:'Describe the medication involved in the diversion including name, quantity and form of the medication',type:'ta'},{id:'injectable',label:'Is the medication injectable?',type:'yn'},{id:'physOrder',label:'What was the physician order?',type:'ta',showIf:a=>a.injectable==='Yes'},{id:'staffNameDob',label:'Provide the full name and date of birth of the staff person involved.',type:'ta',showIf:a=>a.injectable==='Yes'},{id:'asPrescribed',label:'Did the consumer receive medication as prescribed?',type:'select',opts:YNU},{id:'adverse',label:'Describe any adverse effects as a result of the diversion',type:'ta',showIf:a=>a.asPrescribed==='No'},{id:'potentialHarm',label:'Describe any other potential for patient harm',type:'ta'},{id:'storage',label:'Where was the medication stored?',type:'ta'},...WITNESS]},
+    {name:'Investigation',fields:[...INV3,...ASSESS(),{id:'assFindings',label:'Describe assessment findings',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhyNot',label:'Explain why consumer was not assessed',type:'ta',showIf:a=>a.assessed==='No'},...TREAT,...ASSAILANT_INT,OTHERS,DOCREV,{id:'drugScreen',label:'Was drug screening of staff conducted?',type:'yn'},{id:'screenResult',label:'What was the result of the drug screen?',type:'ta',showIf:a=>a.drugScreen==='Yes'},{id:'screenWhen',label:'When was the drug screening conducted?',type:'ta',showIf:a=>a.drugScreen==='Yes'},{id:'whyNoScreen',label:'Why was the drug screening not conducted?',type:'ta',showIf:a=>a.drugScreen==='No'},...POLICIES,CONCL]},
+    {name:'Facility Actions',fields:[CHANGES,STAFFACT,INTERV]},
+    {name:'Notifications',fields:NOTIFY4}],
+  death:()=>[
+    {name:'Description',fields:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},{id:'deathDate',label:'Decendent date of death',type:'date',sub:'Spelled the way the portal spells it.'},{id:'county',label:'County where death occurred',type:'text'},{id:'hospice',label:'Was the consumer receiving hospice services at the time of death?',type:'yn'},{id:'coronerReleased',label:'Did the coroner release the body?',type:'yn'},{id:'coronerName',label:"Coroner's Name:",type:'text'},{id:'suicide',label:'Was the death a suicide?',type:'select',opts:YNU},{id:'ideation',label:'Was the consumer exhibiting suicidal ideation and/or gestures?',type:'yn',showIf:a=>a.suicide==='Yes'},{id:'precautions',label:'Describe suicide precautions in place.',type:'ta',showIf:a=>a.suicide==='Yes'&&a.ideation==='Yes'},{id:'restraint',label:'Was the death the result of a restraint?',type:'yn'},...WITNESS_NO_CONSUMER]},
+    {name:'Investigation',fields:[INV3[0],INV3[1],{id:'advDir',label:'Did the consumer have advance directives?',type:'yn'},{id:'advDirDesc',label:'Describe the advance directives.',type:'ta',showIf:a=>a.advDir==='Yes'},{id:'advDirFollowed',label:'Was the advance directives followed?',type:'yn'},{id:'advDirWhyNot',label:'Describe why advance directives were not followed.',type:'ta',showIf:a=>a.advDirFollowed==='No'},{id:'autopsy',label:'Is an autopsy being done?',type:'select',opts:YNU},DOCREVINT,...POLICIES,CONCL]},
+    {name:'Facility Actions',fields:[INTERV]},
+    {name:'Notifications',fields:NOTIFY4}]
+};
+const VICTIM=t=>VICTIM_EXTRA[t]?VICTIM_EXTRA[t]():VICTIM_BASE(t);
+const ASSAILANT=t=>ASSAILANT_EXTRA[t]?ASSAILANT_EXTRA[t]():ASSAILANT_BASE(t);
+function FINAL(t){return FINAL_EXTRA[t]?FINAL_EXTRA[t]():FINAL_BASE(t)}
 
 // ---------- storage ----------
 const KEY='hpb-occ-v1';let DB=[];
@@ -268,7 +346,7 @@ function applyShow(root,fields,scope,ctx){fields.forEach(f=>{const el=root.query
 
 function renderInitial(){const o=cur;const box=$('#tInitial');
   box.innerHTML=`<div class="sec"><h3>Initial report <span class="muted">What the portal asks first</span></h3>
-    <div class="f"><label>Occurrence Type: <span class="req">*</span></label><select id="occType"><option value="">Please select:</option>${ALL.map(t=>`<option value="${t}"${o.type===t?' selected':''}>${TYPES[t]}</option>`).join('')}</select><p class="sub">The portal lists 15 types; these are the five you asked for first.</p></div>
+    <div class="f"><label>Occurrence Type: <span class="req">*</span></label><select id="occType"><option value="">Please select:</option>${ALL.map(t=>`<option value="${t}"${o.type===t?' selected':''}>${TYPES[t]}</option>`).join('')}</select><p class="sub">The portal lists 15 types. These are the ten Heights has actually filed, each copied from a real record. The other five (Burns, Equipment Misuse, anesthesia and transfusion reactions, Spinal Cord Injury) are left off until there is a record to copy from.</p></div>
     <div id="initFields">${INITIAL.map(f=>fieldHTML(f,o.initial,'i')).join('')}</div></div>
     <div class="bar"><span class="muted">Saves as you type.</span><button type="button" class="btn primary" id="toFinal">Next: final report →</button></div>`;
   $('#occType').onchange=e=>{o.type=e.target.value;save();renderDetail()};
@@ -278,7 +356,7 @@ function renderInitial(){const o=cur;const box=$('#tInitial');
 function personCard(list,i,fields,label,prefix){const p=list[i];return `<div class="person" data-i="${i}"><h4>${label} ${i+1}<button type="button" class="x" data-rm="${i}">Remove</button></h4>${fields.map(f=>fieldHTML(f,p,prefix+i)).join('')}</div>`}
 function renderFinal(){const o=cur;const box=$('#tFinal');if(!o.type){box.innerHTML='<div class="todo no">Pick the occurrence type on the initial report first; the final report questions depend on it.</div>';return}
   const t=o.type;const vf=VICTIM(t),af=ASSAILANT(t);const secs=FINAL(t);
-  let h=`<div class="sec" id="secV"><h3>${t==='miss'||t==='neg'?'Consumer(s)':'Victim(s)'} <button type="button" class="btn sm" id="addV">+ Add</button></h3><div id="vList2">${o.victims.map((p,i)=>personCard(o.victims,i,vf,Vc(t),'v')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
+  let h=`<div class="sec" id="secV"><h3>${ABUSE.includes(t)?'Victim(s)':'Consumer(s)'} <button type="button" class="btn sm" id="addV">+ Add</button></h3><div id="vList2">${o.victims.map((p,i)=>personCard(o.victims,i,vf,Vc(t),'v')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
   if(AN.includes(t))h+=`<div class="sec" id="secA"><h3>Alleged assailant(s) <button type="button" class="btn sm" id="addA">+ Add</button></h3><div id="aList2">${o.assailants.map((p,i)=>personCard(o.assailants,i,af,'Alleged assailant','a')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
   secs.forEach((s,si)=>{h+=`<div class="sec" data-sec="${si}"><h3>${s.name}</h3>${s.fields.map(f=>fieldHTML(f,o.final,'f'+si)).join('')}</div>`});
   h+=`<div class="bar"><span class="muted">Saves as you type. Questions that only apply to a yes/no answer appear when you answer it, same as the portal.</span><button type="button" class="btn primary" id="toPortal">Next: portal status →</button></div>`;
