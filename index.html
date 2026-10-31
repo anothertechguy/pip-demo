@@ -126,11 +126,11 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
   <section class="step on" data-step="1">
     <h1>What kind of plan is this?</h1>
     <p class="lead">Pick one. You can change it later.</p>
-    <div class="callout"><b>Sam, from Sean:</b>First screen is now POC, PIP or Occurrence, like you described. POC keeps the concern dropdown and everything after it, and there is a new "Custom" concern at the bottom of that list with blank, generic boxes. PIP only asks for the department, a person (optional) and a citation (optional), then goes on with general boxes instead of the concern wording. Occurrence is greyed out until the tracker is built.</div>
+    <div class="callout"><b>Sam, from Sean:</b>First screen is now POC, PIP or Occurrence, like you described. POC keeps the concern dropdown and everything after it, and there is a new "Custom" concern at the bottom of that list with blank, generic boxes. PIP only asks for the department, a person (optional) and a citation (optional), then goes on with general boxes instead of the concern wording. Occurrence opens the new occurrence tracker, built from the state portal's own questions.</div>
     <div class="cards three" id="typeCards">
       <button type="button" class="card on" data-t="POC"><b>Plan of Correction</b><span>POC · specific to a policy or regulation</span></button>
       <button type="button" class="card" data-t="PIP"><b>Performance Improvement Plan</b><span>PIP · specific to a person or department</span></button>
-      <button type="button" class="card soon" data-t="OCC"><b>Occurrence<span class="pill">Coming soon</span></b><span>Occurrence tracker · next product</span></button>
+      <button type="button" class="card" data-t="OCC"><b>Occurrence</b><span>State-reportable event · opens the occurrence tracker</span></button>
     </div>
     <div class="row auto">
       <div class="f poc"><label>What is the concern?</label><select id="cat"></select></div>
@@ -400,7 +400,7 @@ $('#ftag').addEventListener('change',addFocusFromTag);$('#ftag').addEventListene
 function setTag(code){renderTags('');$('#tagSearch').value='';$('#ftag').value=code||'';const t=FTAGS.find(x=>x.tag===code);focus=t?[t.group]:[];renderFocus()}
 
 // type / category
-$('#typeCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;if(c.dataset.t==='OCC'){toast('Occurrence tracker is next. Sean is collecting the forms now.');return}type=c.dataset.t;$$('#typeCards .card').forEach(x=>x.classList.toggle('on',x===c));applyType();applyCat();show(step)});
+$('#typeCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;if(c.dataset.t==='OCC'){location.href='occurrences.html';return}type=c.dataset.t;$$('#typeCards .card').forEach(x=>x.classList.toggle('on',x===c));applyType();applyCat();show(step)});
 function applyType(){$$('.poc').forEach(el=>el.hidden=type!=='POC');$$('.pip').forEach(el=>el.hidden=type!=='PIP')}
 function srcLine(c,key){const el=$('#src-'+key);if(!el)return;if(c.generic&&key!=='mon'){el.textContent=type==='PIP'?'General starting point for a PIP. Nothing here came from a document; change anything.':'Generic starting point for a custom plan. Nothing here came from a document; change anything.';return}if(key==='mon'){el.textContent='Defaults set from your Sep 26 note: weekly for 30 days, then reviewed monthly at QAPI for 3 months. This grey line is demo-only.';return}el.textContent=(c.drafted.includes(key)?'Prefilled with draft wording we wrote (none of your documents cover this).':'Prefilled from your file: '+c.src.replace(' .docx','.docx')+'.')+' This grey line is demo-only so you can see where the wording came from; it will not show in the real app.'}
 function renderAsks(c){$('#asks').innerHTML=(c.asks||[]).map(a=>`<div class="f"><label>${esc(a.label)}</label>${a.type==='select'?`<select data-ask="${esc(a.k)}"><option value="">Choose…</option>${a.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input type="${a.type==='date'?'date':'text'}" data-ask="${esc(a.k)}" placeholder="${esc(a.ph||'')}">`}</div>`).join('')}

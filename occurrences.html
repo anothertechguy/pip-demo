@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Heights Occurrence Tracker</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap">
+<style>
+:root{--bg:#FFFFFF;--ink:#243038;--ink2:#4F5D69;--muted:#7A8792;--line:#E3E9EE;--soft:#F3F7FA;--brand:#1E9E88;--brand-ink:#FFFFFF;--brand-soft:#E4F6F1;--sun:#FFF3CF;--sun-ink:#8A6300;--rose:#FDE7E7;--rose-ink:#B03A3A;--occ:#B5651D;--r:14px;--font:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 var(--font);font-weight:500}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1000px;margin:0 auto;padding:22px 24px 80px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-weight:800;font-size:22px;color:var(--brand)}.brand small{display:block;font-size:14px;color:var(--muted);font-weight:600}
+.demo{display:inline-block;background:var(--sun);color:var(--sun-ink);font-weight:800;font-size:13px;padding:4px 10px;border-radius:99px;margin-left:8px;vertical-align:middle}
+.navbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border:2px solid var(--line);border-radius:var(--r);padding:8px 10px;margin-bottom:22px;background:var(--soft)}
+.nav{display:flex;gap:4px;flex-wrap:wrap}.nav a,.nav button{border:0;background:none;border-radius:99px;padding:9px 16px;font-weight:800;font-size:16px;cursor:pointer;color:var(--ink2);text-decoration:none}.nav a:hover,.nav button:hover{background:#fff}.nav .on{background:var(--brand);color:#fff}
+h1{font-size:34px;font-weight:800;line-height:1.15;margin:0 0 6px}.lead{font-size:18px;color:var(--ink2);margin:0 0 18px}
+h2{font-size:22px;font-weight:800;margin:26px 0 10px}
+.callout{background:var(--sun);border:2px solid #F1DFA0;color:#5C4400;border-radius:var(--r);padding:14px 18px;margin:0 0 22px;font-size:16px;line-height:1.5}.callout b{display:block;font-weight:800;margin-bottom:2px}
+.btn{border:2px solid var(--line);background:#fff;border-radius:99px;padding:12px 22px;font-weight:800;font-size:17px;cursor:pointer;text-decoration:none;color:var(--ink);display:inline-block}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}.btn.sm{padding:8px 16px;font-size:15px}.btn.warn{background:var(--sun);border-color:#F1DFA0;color:var(--sun-ink)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.kpi{border:2px solid var(--line);border-radius:var(--r);padding:12px 14px;background:#fff}.kpi .v{font-size:32px;font-weight:800;line-height:1.1}.kpi .l{font-size:14px;color:var(--muted);font-weight:700}.kpi.crit .v{color:var(--rose-ink)}.kpi.warn .v{color:var(--sun-ink)}
+.chips{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}.chip{border:2px solid var(--line);border-radius:99px;padding:6px 14px;font-weight:700;font-size:15px;background:#fff}.chip b{color:var(--occ)}
+.panel{border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;background:#fff;overflow-x:auto;margin-bottom:18px}
+table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line)}td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}tr.row{cursor:pointer}tr.row:hover td{background:var(--soft)}
+.st{display:inline-block;font-weight:800;font-size:13px;padding:3px 10px;border-radius:99px;white-space:nowrap}.st.over{background:var(--rose);color:var(--rose-ink)}.st.due{background:var(--sun);color:var(--sun-ink)}.st.ok{background:var(--brand-soft);color:var(--brand)}.st.done{background:var(--soft);color:var(--ink2)}.st.draft{background:#EEF1F4;color:var(--ink2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px;border-bottom:2px solid var(--line);padding-bottom:10px}.tabs button{border:2px solid var(--line);background:#fff;border-radius:99px;padding:9px 16px;font-weight:800;font-size:15px;cursor:pointer}.tabs button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.sec{border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;margin-bottom:16px;background:#fff}.sec>h3{margin:0 0 12px;font-size:19px;font-weight:800;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.f{margin-bottom:14px}.f label{display:block;font-weight:800;font-size:16px;margin-bottom:6px}.f label .req{color:#C62828}
+.f input,.f select,.f textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px 14px;font-size:16px;background:#fff}.f textarea{min-height:96px;resize:vertical;line-height:1.45}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 4px var(--brand-soft)}
+.f .sub{font-size:14px;color:var(--muted);margin:-2px 0 6px}
+.f.cond{margin-left:18px;padding-left:14px;border-left:3px solid var(--brand-soft)}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}.checks label{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;font-size:15px;font-weight:600;background:#fff}.checks label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}.checks input{width:20px;height:20px;margin-top:2px;accent-color:var(--brand);flex:none}
+.radio{display:flex;gap:10px;flex-wrap:wrap}.radio label{display:flex;gap:8px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:15px}.radio label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}.radio input{width:18px;height:18px;accent-color:var(--brand)}
+.person{border:2px dashed var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;background:var(--soft)}.person h4{margin:0 0 10px;font-size:16px;font-weight:800;display:flex;justify-content:space-between}.person .x{border:0;background:none;color:var(--rose-ink);font-weight:800;cursor:pointer}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin:18px 0}
+.meta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px;margin-bottom:14px}.meta b{font-weight:800}
+.todo{border:2px solid var(--line);border-radius:var(--r);padding:14px 18px;margin-bottom:16px}.todo.ok{background:var(--brand-soft);border-color:var(--brand)}.todo.no{background:var(--rose);border-color:#F3C3C3;color:var(--rose-ink)}.todo ul{margin:6px 0 0;padding-left:20px}
+.copyview{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;white-space:pre-wrap;border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;background:#fff;line-height:1.5}
+.copyview h3{font-family:var(--font);font-size:17px;margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.copyview h3:first-child{margin-top:0}
+.copyview .q{font-weight:800;color:var(--ink)}.copyview .a{color:#1b2a6b;margin-bottom:10px}.copyview .a.empty{color:var(--rose-ink)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:99px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}.toast.show{opacity:1}
+.muted{color:var(--muted);font-size:14px}
+@media print{body *{visibility:hidden}#copyview,#copyview *{visibility:visible}#copyview{position:absolute;left:0;top:0;width:100%;border:0}#copyview button{display:none!important}}
+@media (max-width:760px){.kpis{grid-template-columns:1fr 1fr}.checks,.row2{grid-template-columns:1fr}.wrap{padding:16px 16px 60px}h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">Heights Plan Builder<span class="demo">DEMO</span><small>Occurrence tracker · a holding place before the state portal · saves in this browser</small></div></div>
+  <div class="navbar">
+    <div class="nav"><a href="dashboard.html">Dashboard</a><a href="index.html">POC / PIP</a><button type="button" class="on" id="navList">Occurrences</button></div>
+    <button type="button" class="btn primary" id="newBtn">+ New occurrence</button>
+  </div>
+
+  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for the five categories you asked for. Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Two things I left out on purpose: resident names and dates of birth (numbers only in our system, you add the name in the portal). Tell me if you want them in.</div>
+
+  <!-- LIST -->
+  <div id="vList">
+    <h1>Occurrences</h1>
+    <p class="lead">Everything logged here, newest first. Click a row to open it.</p>
+    <div class="kpis" id="kpis"></div>
+    <div class="chips" id="typeChips"></div>
+    <div class="panel"><table id="list"></table></div>
+    <p class="muted">Final report rule from the portal: due 5 calendar days after the initial report is submitted there, before 11:59 PM on day 5. "Entered in portal" dates are what you record once you've copied it over.</p>
+  </div>
+
+  <!-- DETAIL -->
+  <div id="vDetail" hidden>
+    <div class="bar"><button type="button" class="btn sm" id="backBtn">← All occurrences</button><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="copyBtn">Copy for the portal</button><button type="button" class="btn sm" id="printBtn">Print / Save PDF</button><button type="button" class="btn sm" id="deleteBtn" style="color:var(--rose-ink)">Delete</button></div></div>
+    <h1 id="dTitle"></h1>
+    <div class="meta" id="dMeta"></div>
+    <div class="tabs"><button type="button" class="on" data-tab="initial">1 · Initial report</button><button type="button" data-tab="final">2 · Final report</button><button type="button" data-tab="portal">3 · Portal status</button><button type="button" data-tab="copy">Copy for the portal</button></div>
+    <div id="tInitial"></div>
+    <div id="tFinal" hidden></div>
+    <div id="tPortal" hidden></div>
+    <div id="tCopy" hidden><div class="todo" id="copyTodo"></div><div class="bar"><span class="muted">Each section has its own copy button; "Copy everything" puts the whole thing on your clipboard in portal order.</span><button type="button" class="btn sm primary" id="copyAll">Copy everything</button></div><div class="copyview" id="copyview"></div></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="occ-seed.js"></script>
+<script>
+// ---------- portal vocabulary (verbatim from COHFI, Oct 30 2026) ----------
+const TYPES={phys:'Physical Abuse',sex:'Sexual Abuse',verb:'Verbal Abuse',neg:'Neglect',miss:'Missing Person'};
+const ABUSE=['phys','sex','verb'],AN=['phys','sex','verb','neg'],ALL=['phys','sex','verb','neg','miss'];
+const AGENCIES=['Police','Family/Guardian','Ombudsman','Physician','Adult Protective Services','Child Protective Services (CPS)','Board of Nursing','Board of Medical Examiners','Board of Pharmacy','Licensing Board - Other','Coroner','Food and Drug Administration','Drug Enforcement Administration','Manufacturer','Other (provide a description or identify entity or agency)'];
+const OTHER_AG=AGENCIES[14];
+const YN=['Yes','No'];
+// v = victim/consumer word by type
+const V=t=>t==='miss'||t==='neg'?'consumer':'victim';
+const Vc=t=>V(t).charAt(0).toUpperCase()+V(t).slice(1);
+
+// Field: {id,label,type:'text'|'ta'|'yn'|'select'|'checks'|'dt'|'date'|'num'|'tel'|'email', opts, req, showIf:(answers,ctx)=>bool, types:[...]}
+const INITIAL=[
+  {id:'reporterEmail',label:'Reporter Email:',type:'email',req:true},
+  {id:'reporterPhone',label:'Reporter Phone Number:',type:'tel',req:true,ph:'(555) 555-5555 Ext. 555'},
+  {id:'reportedBy',label:'Reported By:',type:'text'},
+  {id:'occDT',label:'Occurrence Date and Time:',type:'dt',req:true},
+  {id:'firstKnownDT',label:'First Known Date and Time:',type:'dt',req:true,sub:'When the first staff member became aware, not when administration did (portal manual).'},
+  {id:'describe',label:'Describe the event – What is being alleged or what occurred? Describe the immediate outcome to the consumer(s):',type:'ta',req:true},
+  {id:'safety',label:'What immediate safety measures were put in place to protect the consumer and/or other consumers during the investigation?',type:'ta',req:true},
+  {id:'police',label:'Were the police notified?',type:'select',opts:['Yes','No','Unknown'],req:true,sub:'Portal note: any allegation of abuse must be reported to local law enforcement.'},
+  {id:'agencies',label:'What other agencies have been notified as a result of this occurrence? Any allegation of abuse must have a police notification.',type:'checks',opts:AGENCIES},
+  {id:'otherAgency',label:'Other Agency:',type:'text',req:true,showIf:a=>(a.agencies||[]).includes(OTHER_AG)}
+];
+const PERSON_COMMON=t=>[
+  {id:'nameId',label:'Name/ID',type:'text',req:true,sub:'Resident number only in our system. Add the name in the portal.'},
+  {id:'gender',label:'Gender',type:'select',opts:['Male','Female','Other']},
+  {id:'dob',label:'Date Of Birth',type:'date',sub:'Optional here; the portal asks for it.'},
+  {id:'age',label:'Age at the time of occurrence',type:'num'},
+  {id:'cognitive',label:'Provide cognitive status as relevant to this occurrence',type:'ta'},
+  {id:'physical',label:'Provide physical status as relevant to this occurrence',type:'ta'}];
+const VICTIM=t=>t==='miss'?[...PERSON_COMMON(t),
+  {id:'hist',label:'Does the consumer have a history of the following? (Select all that apply)',type:'checks',opts:['Mental Illness','Intellectual/Developmental Disability','Substance Abuse',"Dementia/Alzheimer's Disease",'Homelessness','Other']},
+  {id:'histOther',label:'Describe other',type:'text',showIf:a=>(a.hist||[]).includes('Other')},
+  {id:'elopeHist',label:'Does the consumer have a history of elopement?',type:'yn'},
+  {id:'safetyPlan',label:'Was there a safety plan?',type:'yn',showIf:a=>a.elopeHist==='Yes'},
+  {id:'safetyPlanDesc',label:'Describe the safety plan',type:'ta',showIf:a=>a.elopeHist==='Yes'&&a.safetyPlan==='Yes'},
+  {id:'respSelf',label:'Is the consumer responsible for self?',type:'yn'},
+  {id:'status',label:'Status of the time of elopement',type:'select',opts:['Voluntary','Involuntary M1-Hold','Involuntary Short-Term Certification','Involuntary Long-Term Certification','Other']}
+]:[...PERSON_COMMON(t),
+  {id:'histBeh',label:`Does the ${V(t)} have a history of behaviors?`,type:'yn'},
+  {id:'behDesc',label:'Provide a description of the behaviors',type:'ta',showIf:a=>a.histBeh==='Yes'},
+  {id:'carePlan',label:`Is there a care plan for the ${V(t)}'s behaviors?`,type:'yn',showIf:a=>a.histBeh==='Yes'},
+  {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>a.histBeh==='Yes'&&a.carePlan==='Yes'},
+  {id:'other12',label:`Has the ${V(t)} been involved in any other occurrences in the past 12 months?`,type:'yn'},
+  {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>a.other12==='Yes'}];
+const isStaff=a=>a.rel==='Staff member'||a.rel==='Other service provider';
+const ASSAILANT=t=>[
+  {id:'rel',label:'Relationship to licensee',type:'select',opts:['Consumer','Staff member','Other service provider','Family','Visitor','Other/Unknown'],req:true},
+  // consumer
+  {id:'nameId',label:'Name/ID',type:'text',showIf:a=>a.rel==='Consumer',sub:'Resident number only.'},
+  {id:'gender',label:'Gender',type:'select',opts:['Male','Female','Other'],showIf:a=>a.rel==='Consumer'},
+  {id:'dob',label:'Date Of Birth',type:'date',showIf:a=>a.rel==='Consumer'},
+  {id:'age',label:'Age at the time of occurrence',type:'num',showIf:a=>a.rel==='Consumer'},
+  {id:'cognitive',label:'Cognitive status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:a=>a.rel==='Consumer'},
+  {id:'physical',label:'Physical status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:a=>a.rel==='Consumer'},
+  {id:'histBeh',label:'Does the alleged assailant have a history of behaviors?',type:'yn',showIf:a=>a.rel==='Consumer'},
+  {id:'behDesc',label:'Provide a description of the behaviors.',type:'ta',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'},
+  {id:'carePlan',label:"Is there a care plan for the alleged assailant's behaviors?",type:'yn',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'},
+  {id:'carePlanSum',label:'Provide a summary of the care plan',type:'ta',showIf:a=>a.rel==='Consumer'&&a.histBeh==='Yes'&&a.carePlan==='Yes'},
+  {id:'other12',label:'Has the alleged assailant been involved in any other occurrences in the past 12 months?',type:'yn',showIf:a=>a.rel==='Consumer'},
+  {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>a.rel==='Consumer'&&a.other12==='Yes'},
+  // staff / other service provider
+  {id:'staffId',label:'ID/Name of the staff person involved',type:'text',showIf:isStaff},
+  {id:'sgender',label:'Gender',type:'select',opts:['Male','Female','Other'],showIf:isStaff},
+  {id:'title',label:'Title',type:'text',showIf:isStaff},
+  {id:'license',label:'License/certification number',type:'text',showIf:isStaff},
+  {id:'bg',label:'Were background checks completed?',type:'yn',showIf:isStaff},
+  {id:'bgYes',label:'Describe any problems identified and the plan for supervision',type:'ta',showIf:a=>isStaff(a)&&a.bg==='Yes'},
+  {id:'bgNo',label:'Explain why background checks were not conducted',type:'ta',showIf:a=>isStaff(a)&&a.bg==='No'},
+  {id:'ref',label:'Were reference checks completed on the staff person?',type:'yn',showIf:isStaff},
+  {id:'refYes',label:'Describe any problems identified and the plan for supervision',type:'ta',showIf:a=>isStaff(a)&&a.ref==='Yes'},
+  {id:'refNo',label:'Explain why reference checks were not conducted',type:'ta',showIf:a=>isStaff(a)&&a.ref==='No'},
+  {id:'sother12',label:'Has the staff member been involved in any other occurrences in the past 12 months?',type:'yn',showIf:isStaff},
+  {id:'sother12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isStaff(a)&&a.sother12==='Yes'},
+  // family / visitor / other
+  {id:'describe',label:'Describe Other',type:'ta',showIf:a=>['Family','Visitor','Other/Unknown'].includes(a.rel)}
+];
+const WITNESS=[
+  {id:'witnessed',label:'Was the occurrence witnessed?',type:'yn'},
+  {id:'who',label:'Who witnessed the occurrence?',type:'checks',opts:['Staff Member(s)','Visitor','Consumer','Other'],showIf:a=>a.witnessed==='Yes'},
+  {id:'staffNames',label:'Provide Staff Member(s) Name/ID and Title',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Staff Member(s)')},
+  {id:'consumerNames',label:'Provide Consumer Name(s)/ID',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Consumer')},
+  {id:'otherWitness',label:'Describe Other Witness',type:'ta',showIf:a=>a.witnessed==='Yes'&&(a.who||[]).includes('Other')}];
+function FINAL(t){const v=V(t),vc=Vc(t);const S=[];
+  S.push({name:'Description',fields:t==='miss'?[
+    {id:'desc',label:'Describe what occurred',type:'ta',req:true},
+    {id:'location',label:'Consumer location at the time of elopement?',type:'select',opts:['Unsecured Unit','Secured unit','Emergency department','Community pass','Other']},
+    {id:'locOther',label:'Describe Other Elopement Location',type:'ta',showIf:a=>a.location==='Other'},
+    {id:'oversight',label:'What level of staff oversight was in place at the time of elopement?',type:'select',opts:['1:1','Line of sight','Frequent checks','Other','None']},
+    {id:'ovOther',label:'Describe other elopement oversight',type:'ta',showIf:a=>a.oversight==='Other'},
+    {id:'identifiedMissing',label:'What date/time was the consumer identified as missing?',type:'dt'},
+    {id:'lastObserved',label:'When was the consumer last observed by staff?',type:'dt'},
+    ...WITNESS,
+    {id:'risk',label:"What was the consumer's risk level at the time of elopement?",type:'checks',opts:['At risk to self','At risk to others','Not at risk']},
+    {id:'riskFactors',label:'Describe risk factors',type:'ta',showIf:a=>(a.risk||[]).some(x=>x!=='Not at risk')}
+  ]:[{id:'desc',label:'Describe what occurred',type:'ta',req:true},...WITNESS]});
+  const inv=[{id:'invDate',label:'Date investigation started',type:'date'},{id:'actions',label:'Describe the investigative actions taken.',type:'ta'},{id:'keptSafe',label:'How were the consumers kept safe during the investigation?',type:'ta'}];
+  if(t==='miss')inv.push({id:'grounds',label:'Was a grounds search conducted?',type:'yn'},{id:'whereabouts',label:"Is the consumer's whereabouts known?",type:'yn'},{id:'located',label:'Describe and provide date/time of when the consumer was located.',type:'ta',showIf:a=>a.whereabouts==='Yes'},{id:'hours',label:'How many hours was the consumer missing?',type:'num'});
+  inv.push({id:'assessed',label:`Was the ${v} assessed?`,type:'yn'},{id:'assWho',label:'Who conducted an assessment?',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhen',label:t==='miss'||t==='neg'?'When was an assessment conducted?':'When was the assessment conducted?',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assFindings',label:'Describe assessment findings',type:'ta',showIf:a=>a.assessed==='Yes'},{id:'assWhyNot',label:`Explain why ${t==='miss'||t==='neg'?'consumer':'the victim'} was not assessed`,type:'ta',showIf:a=>a.assessed==='No'});
+  inv.push({id:'treatment',label:`Was treatment provided to the ${v}?`,type:'yn'},{id:'treatDesc',label:'Describe the treatment',type:'ta',showIf:a=>a.treatment==='Yes'});
+  if(t==='phys')inv.push({id:'injured',label:'Was the consumer/victim injured?',type:'yn'},{id:'injuryDesc',label:'Describe the injury',type:'ta',showIf:a=>a.injured==='Yes'},{id:'injuryTreat',label:'Describe the treatment',type:'ta',showIf:a=>a.injured==='Yes'});
+  inv.push({id:'transferred',label:`Was the ${v} transferred to a higher level of care?`,type:'yn'},{id:'transferDetails',label:'Provide transfer details',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'hospTreat',label:t==='miss'||t==='neg'?'What treatment was provided in the hospital?':'What treatment was provided?',type:'ta',showIf:a=>a.transferred==='Yes'},{id:'returned',label:`Did the ${v} return to ${t==='miss'||t==='neg'?'previous':'the previous'} level of care?`,type:'yn',showIf:a=>a.transferred==='Yes'},{id:'whyNotReturn',label:`Why did the ${v} not return to the previous level of care?`,type:'ta',showIf:a=>a.transferred==='Yes'&&a.returned==='No'});
+  inv.push({id:'status',label:`Current status of ${v}`,type:'ta'});
+  if(AN.includes(t)){inv.push({id:'interviewed',label:`Was the ${v} interviewed?`,type:'yn'},{id:'intResults',label:'Provide the results of the interview',type:'ta',showIf:a=>a.interviewed==='Yes'},{id:'whyNotInt',label:`Why was the ${v} not interviewed?`,type:'ta',showIf:a=>a.interviewed==='No'});
+    inv.push({id:'behav',label:t==='verb'||t==='neg'?'Describe any behavioral changes observed':'Describe any non-verbal responses and/or behavioral changes observed',type:'ta'});
+    inv.push({id:'assailantInt',label:'Was the alleged assailant interviewed by management?',type:'yn'},{id:'assailantResults',label:'Provide results of interview.',type:'ta',showIf:a=>a.assailantInt==='Yes'});
+    if(t==='neg')inv.push({id:'docReviewInt',label:'Provide results of documentation review and interviews',type:'ta'},{id:'docReview',label:'Provide the results of documentation review',type:'ta'});
+    else inv.push({id:'othersSummary',label:'Provide a brief summary of the interviews conducted with other consumers and staff as relevant to the investigation',type:'ta'},{id:'docReview',label:'Provide the results of documentation review',type:'ta'});}
+  else inv.push({id:'docReviewInt',label:'Provide results of documentation review and interviews',type:'ta'});
+  inv.push({id:'policies',label:'Were policies and procedures followed?',type:'yn'},{id:'deviation',label:'Describe deviation from policies and procedures',type:'ta',showIf:a=>a.policies==='No'},{id:'conclusion',label:'Provide the conclusion of the internal investigation',type:'ta'});
+  S.push({name:'Investigation',fields:inv});
+  const fa=[{id:'victimChanges',label:`Describe any changes made to the ${v}'s treatment regimen and/or care plan as a result of the occurrence${ABUSE.includes(t)?'.':''}`,type:'ta'}];
+  if(ABUSE.includes(t))fa.push({id:'assailantConsumerChanges',label:"What changes were made to the alleged assailant's treatment regimen and/or care plan as a result of the occurrence?",type:'ta',showIf:(a,ctx)=>ctx.assailants.some(x=>x.rel==='Consumer')});
+  if(AN.includes(t))fa.push({id:'assailantStaffActions',label:'In response to the conclusion of the investigation, what actions were taken with the alleged assailant?',type:'ta',showIf:(a,ctx)=>ctx.assailants.some(isStaff)});
+  fa.push({id:'interventions',label:'Describe interventions that were put into place to help prevent a recurrence',type:'ta'});
+  S.push({name:'Facility Actions',fields:fa});
+  const no=[{id:'notified',label:'Who was notified? Check all that apply',type:'checks',opts:AGENCIES},{id:'notifiedOther',label:'Who was notified? (Describe other)',type:'ta',showIf:a=>(a.notified||[]).includes(OTHER_AG)},{id:'pdName',label:'Police Department Name/County',type:'text'},{id:'officer',label:'Police Officer Name',type:'text'}];
+  if(AN.includes(t))no.push({id:'officerPhone',label:'Police Officer telephone number',type:'tel'},{id:'caseNo',label:'Case/Referral Number',type:'text'},{id:'policeDT',label:'Date and Time Police was notified',type:'dt'});
+  S.push({name:'Notifications',fields:no});
+  return S}
+
+// ---------- storage ----------
+const KEY='hpb-occ-v1';let DB=[];
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);return}}catch(e){}DB=JSON.parse(JSON.stringify(window.OCC_SEED||[]));save()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmtD=d=>d?new Date(d.slice(0,10)+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+const fmtDT=d=>d?new Date(d).toLocaleString('en-US',{month:'numeric',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'';
+const localISO=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');const today=()=>localISO(new Date());
+const days=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),2400)}
+
+// status: where this occurrence stands against the portal
+function finalDue(o){return o.portal.initialEntered?(()=>{const x=new Date(o.portal.initialEntered+'T12:00:00');x.setDate(x.getDate()+5);return localISO(x)})():''}
+function status(o){if(o.portal.finalEntered)return {k:'done',t:'Complete · in portal'};if(!o.portal.initialEntered)return {k:'draft',t:'Initial not in portal yet'};const due=finalDue(o);const n=days(today(),due);if(n<0)return {k:'over',t:`Final overdue ${-n}d`};if(n<=2)return {k:'due',t:`Final due in ${n}d`};return {k:'ok',t:`Final due ${fmtD(due)}`}}
+
+// ---------- list view ----------
+function renderList(){const yr=new Date().getFullYear();const thisYear=DB.filter(o=>(o.initial.occDT||o.created).startsWith(String(yr)));
+  const open=DB.filter(o=>!o.portal.finalEntered);const over=open.filter(o=>status(o).k==='over');const notIn=open.filter(o=>!o.portal.initialEntered);
+  $('#kpis').innerHTML=`<div class="kpi"><div class="v" style="color:var(--occ)">${thisYear.length}</div><div class="l">Occurrences this year</div></div><div class="kpi warn"><div class="v">${notIn.length}</div><div class="l">Initial not in portal yet</div></div><div class="kpi crit"><div class="v">${over.length}</div><div class="l">Final reports overdue</div></div><div class="kpi"><div class="v">${open.length}</div><div class="l">Open (final not in portal)</div></div>`;
+  $('#typeChips').innerHTML=ALL.map(t=>`<span class="chip">${TYPES[t]} <b>${thisYear.filter(o=>o.type===t).length}</b></span>`).join('');
+  const L=DB.slice().sort((a,b)=>(b.initial.occDT||b.created)<(a.initial.occDT||a.created)?-1:1);
+  $('#list').innerHTML='<tr><th>Occurrence</th><th>Type</th><th>Resident(s)</th><th>Portal case ID</th><th>Status</th></tr>'+(L.length?L.map(o=>{const s=status(o);return `<tr class="row" data-id="${o.id}"><td>${fmtDT(o.initial.occDT)||fmtD(o.created)}</td><td>${TYPES[o.type]}</td><td>${esc((o.victims||[]).map(v=>v.nameId).filter(Boolean).join(', ')||'—')}</td><td>${esc(o.portal.caseId||'—')}</td><td><span class="st ${s.k}">${s.t}</span></td></tr>`}).join(''):'<tr><td colspan="5">Nothing logged yet. Click "+ New occurrence".</td></tr>')}
+$('#list').addEventListener('click',e=>{const r=e.target.closest('tr.row');if(r)openDetail(r.dataset.id)});
+
+// ---------- detail ----------
+let cur=null,tab='initial';
+function openDetail(id){cur=DB.find(o=>o.id===id);tab='initial';$('#vList').hidden=true;$('#vDetail').hidden=false;$('#introCallout').hidden=true;renderDetail();window.scrollTo({top:0})}
+function closeDetail(){cur=null;$('#vDetail').hidden=true;$('#vList').hidden=false;$('#introCallout').hidden=false;renderList();window.scrollTo({top:0})}
+$('#backBtn').onclick=closeDetail;$('#navList').onclick=closeDetail;
+$('#newBtn').onclick=()=>{const o={id:'occ-'+Date.now(),type:'',created:today(),portal:{caseId:'',initialEntered:'',finalEntered:''},initial:{reportedBy:'Samuel Krommenhoek'},victims:[],assailants:[],final:{}};DB.unshift(o);save();openDetail(o.id)};
+$('#deleteBtn').onclick=()=>{if(!cur)return;if(!confirm('Delete this occurrence from the tracker? (Nothing in the state portal is touched.)'))return;DB=DB.filter(o=>o!==cur);save();closeDetail();toast('Deleted.')};
+$$('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderDetail()});
+$('#copyBtn').onclick=()=>{tab='copy';renderDetail()};
+$('#printBtn').onclick=()=>{tab='copy';renderDetail();setTimeout(()=>window.print(),100)};
+
+function renderDetail(){const o=cur;const s=status(o);
+  $('#dTitle').textContent=(o.type?TYPES[o.type]:'New occurrence')+(o.initial.occDT?' · '+fmtDT(o.initial.occDT):'');
+  $('#dMeta').innerHTML=`<b>Status</b><span><span class="st ${s.k}">${s.t}</span></span><b>Logged here</b><span>${fmtD(o.created)}</span>${o.portal.caseId?`<b>Portal case ID</b><span>${esc(o.portal.caseId)}</span>`:''}${finalDue(o)?`<b>Final report due in portal</b><span>${fmtD(finalDue(o))} by 11:59 PM</span>`:''}`;
+  $$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+  $('#tInitial').hidden=tab!=='initial';$('#tFinal').hidden=tab!=='final';$('#tPortal').hidden=tab!=='portal';$('#tCopy').hidden=tab!=='copy';
+  if(tab==='initial')renderInitial();if(tab==='final')renderFinal();if(tab==='portal')renderPortal();if(tab==='copy')renderCopy()}
+
+// generic field renderer. scope = object holding answers; prefix makes ids unique
+function fieldHTML(f,scope,prefix){const id=prefix+'__'+f.id;const v=scope[f.id];const req=f.req?' <span class="req">*</span>':'';const sub=f.sub?`<p class="sub">${esc(f.sub)}</p>`:'';const cond=f.showIf?' cond':'';
+  let ctl='';
+  if(f.type==='ta')ctl=`<textarea data-f="${f.id}">${esc(v)}</textarea>`;
+  else if(f.type==='yn')ctl=`<div class="radio">${YN.map(x=>`<label><input type="radio" name="${id}" data-f="${f.id}" value="${x}"${v===x?' checked':''}> ${x}</label>`).join('')}</div>`;
+  else if(f.type==='select')ctl=`<select data-f="${f.id}"><option value="">Please select:</option>${f.opts.map(x=>`<option${v===x?' selected':''}>${esc(x)}</option>`).join('')}</select>`;
+  else if(f.type==='checks')ctl=`<div class="checks">${f.opts.map(x=>`<label><input type="checkbox" data-f="${f.id}" value="${esc(x)}"${(v||[]).includes(x)?' checked':''}> ${esc(x)}</label>`).join('')}</div>`;
+  else{const t={dt:'datetime-local',date:'date',num:'number',tel:'tel',email:'email'}[f.type]||'text';ctl=`<input type="${t}" data-f="${f.id}" value="${esc(v)}"${f.ph?` placeholder="${esc(f.ph)}"`:''}>`}
+  return `<div class="f${cond}" data-fid="${f.id}"><label>${esc(f.label)}${req}</label>${sub}${ctl}</div>`}
+function bindScope(root,scope,fields,onChange){root.addEventListener('input',h);root.addEventListener('change',h);
+  function h(e){const el=e.target;const k=el.dataset.f;if(!k)return;const f=fields.find(x=>x.id===k);if(!f)return;
+    if(f.type==='checks')scope[k]=[...root.querySelectorAll(`input[data-f="${k}"]:checked`)].map(i=>i.value);else if(f.type==='yn'){if(el.checked)scope[k]=el.value}else scope[k]=el.value;
+    save();applyShow(root,fields,scope);if(onChange)onChange()}}
+function applyShow(root,fields,scope,ctx){fields.forEach(f=>{const el=root.querySelector(`[data-fid="${f.id}"]`);if(el&&f.showIf)el.hidden=!f.showIf(scope,ctx||cur)})}
+
+function renderInitial(){const o=cur;const box=$('#tInitial');
+  box.innerHTML=`<div class="sec"><h3>Initial report <span class="muted">What the portal asks first</span></h3>
+    <div class="f"><label>Occurrence Type: <span class="req">*</span></label><select id="occType"><option value="">Please select:</option>${ALL.map(t=>`<option value="${t}"${o.type===t?' selected':''}>${TYPES[t]}</option>`).join('')}</select><p class="sub">The portal lists 15 types; these are the five you asked for first.</p></div>
+    <div id="initFields">${INITIAL.map(f=>fieldHTML(f,o.initial,'i')).join('')}</div></div>
+    <div class="bar"><span class="muted">Saves as you type.</span><button type="button" class="btn primary" id="toFinal">Next: final report →</button></div>`;
+  $('#occType').onchange=e=>{o.type=e.target.value;save();renderDetail()};
+  const root=$('#initFields');applyShow(root,INITIAL,o.initial);bindScope(root,o.initial,INITIAL);
+  $('#toFinal').onclick=()=>{tab='final';renderDetail()}}
+
+function personCard(list,i,fields,label,prefix){const p=list[i];return `<div class="person" data-i="${i}"><h4>${label} ${i+1}<button type="button" class="x" data-rm="${i}">Remove</button></h4>${fields.map(f=>fieldHTML(f,p,prefix+i)).join('')}</div>`}
+function renderFinal(){const o=cur;const box=$('#tFinal');if(!o.type){box.innerHTML='<div class="todo no">Pick the occurrence type on the initial report first; the final report questions depend on it.</div>';return}
+  const t=o.type;const vf=VICTIM(t),af=ASSAILANT(t);const secs=FINAL(t);
+  let h=`<div class="sec" id="secV"><h3>${t==='miss'||t==='neg'?'Consumer(s)':'Victim(s)'} <button type="button" class="btn sm" id="addV">+ Add</button></h3><div id="vList2">${o.victims.map((p,i)=>personCard(o.victims,i,vf,Vc(t),'v')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
+  if(AN.includes(t))h+=`<div class="sec" id="secA"><h3>Alleged assailant(s) <button type="button" class="btn sm" id="addA">+ Add</button></h3><div id="aList2">${o.assailants.map((p,i)=>personCard(o.assailants,i,af,'Alleged assailant','a')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
+  secs.forEach((s,si)=>{h+=`<div class="sec" data-sec="${si}"><h3>${s.name}</h3>${s.fields.map(f=>fieldHTML(f,o.final,'f'+si)).join('')}</div>`});
+  h+=`<div class="bar"><span class="muted">Saves as you type. Questions that only apply to a yes/no answer appear when you answer it, same as the portal.</span><button type="button" class="btn primary" id="toPortal">Next: portal status →</button></div>`;
+  box.innerHTML=h;
+  // people
+  const wireList=(listEl,list,fields,prefix)=>{listEl.querySelectorAll('.person').forEach(card=>{const i=+card.dataset.i;applyShow(card,fields,list[i]);bindScope(card,list[i],fields,()=>{secs.forEach((s,si)=>applyShow(box.querySelector(`[data-sec="${si}"]`),s.fields,o.final))})});
+    listEl.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){list.splice(+b.dataset.rm,1);save();renderFinal()}})};
+  wireList($('#vList2'),o.victims,vf,'v');$('#addV').onclick=()=>{o.victims.push({});save();renderFinal()};
+  if(AN.includes(t)){wireList($('#aList2'),o.assailants,af,'a');$('#addA').onclick=()=>{o.assailants.push({});save();renderFinal()}}
+  secs.forEach((s,si)=>{const root=box.querySelector(`[data-sec="${si}"]`);applyShow(root,s.fields,o.final);bindScope(root,o.final,s.fields)});
+  $('#toPortal').onclick=()=>{tab='portal';renderDetail()}}
+
+function renderPortal(){const o=cur;const box=$('#tPortal');
+  box.innerHTML=`<div class="sec"><h3>Where this stands in the state portal</h3><p class="muted" style="margin-top:0">Record what you've copied over so the list shows what's still waiting. The portal sets its own due times; the final report is due 5 calendar days after you submit the initial report there.</p>
+    <div class="row2"><div class="f"><label>Portal occurrence case ID</label><input id="pCase" value="${esc(o.portal.caseId)}" placeholder="e.g. 26020405036 once the portal assigns it"></div><div></div>
+    <div class="f"><label>Initial report entered in portal on</label><input type="date" id="pInit" value="${esc(o.portal.initialEntered)}"></div><div class="f"><label>Final report entered in portal on</label><input type="date" id="pFinal" value="${esc(o.portal.finalEntered)}"></div></div>
+    ${finalDue(o)?`<div class="todo ${status(o).k==='over'?'no':'ok'}">Final report due in the portal: <b>${fmtD(finalDue(o))} by 11:59 PM</b> (5 calendar days after ${fmtD(o.portal.initialEntered)}).</div>`:'<div class="todo">Once you enter the initial report in the portal and put the date here, the final-report due date shows up.</div>'}
+    </div><div class="bar"><span></span><button type="button" class="btn primary" id="toCopy">Copy for the portal →</button></div>`;
+  $('#pCase').oninput=e=>{o.portal.caseId=e.target.value;save()};$('#pInit').onchange=e=>{o.portal.initialEntered=e.target.value;save();renderDetail()};$('#pFinal').onchange=e=>{o.portal.finalEntered=e.target.value;save();renderDetail()};
+  $('#toCopy').onclick=()=>{tab='copy';renderDetail()}}
+
+// ---------- copy view: every question in portal order ----------
+function val(f,v){if(f.type==='checks')return (v||[]).join('; ');if(f.type==='dt')return fmtDT(v);if(f.type==='date')return fmtD(v);return (v??'').toString().trim()}
+function copyBlocks(){const o=cur;const blocks=[];const missing=[];
+  const push=(name,fields,scope,ctx,who)=>{const lines=[];fields.forEach(f=>{if(f.showIf&&!f.showIf(scope,ctx))return;const v=val(f,scope[f.id]);if(f.req&&!v)missing.push((who?who+': ':'')+f.label.replace(/:$/,''));lines.push({q:f.label,a:v})});blocks.push({name,lines})};
+  push('Initial report',[{id:'type',label:'Occurrence Type:',type:'text',req:true},...INITIAL],{...o.initial,type:TYPES[o.type]||''},o);
+  if(o.type){const t=o.type;o.victims.forEach((p,i)=>push(`${Vc(t)} ${i+1}`,VICTIM(t),p,o,`${Vc(t)} ${i+1}`));if(AN.includes(t))o.assailants.forEach((p,i)=>push(`Alleged assailant ${i+1}`,ASSAILANT(t),p,o,`Alleged assailant ${i+1}`));
+    FINAL(t).forEach(s=>push('Final report · '+s.name,s.fields,o.final,o,s.name))}
+  return {blocks,missing}}
+function blockText(b){return b.name.toUpperCase()+'\n'+b.lines.map(l=>l.q+'\n'+(l.a||'(blank)')).join('\n\n')}
+function renderCopy(){const {blocks,missing}=copyBlocks();const td=$('#copyTodo');td.className='todo '+(missing.length?'no':'ok');td.innerHTML=missing.length?`<b>${missing.length} required portal field${missing.length===1?'':'s'} still blank:</b><ul>${missing.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>`:'<b>Every required portal field has an answer.</b> Optional ones left blank show as (blank) below.';
+  $('#copyview').innerHTML=`<h3>${esc(TYPES[cur.type]||'Occurrence')} · Heights Care and Rehabilitation · logged ${fmtD(cur.created)}</h3>`+blocks.map((b,i)=>`<h3>${esc(b.name)}<button type="button" class="btn sm" data-copy="${i}">Copy section</button></h3>`+b.lines.map(l=>`<div class="q">${esc(l.q)}</div><div class="a${l.a?'':' empty'}">${esc(l.a||'(blank)')}</div>`).join('')).join('');
+  $('#copyview').onclick=e=>{const b=e.target.closest('[data-copy]');if(b)copyText(blockText(blocks[+b.dataset.copy]),'Section copied.')};
+  $('#copyAll').onclick=()=>copyText(blocks.map(blockText).join('\n\n\n'),'Everything copied, in portal order.')}
+function copyText(t,msg){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(msg)).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg)}catch(e){toast('Copy blocked here; select the text and copy by hand.')}ta.remove()})}
+
+load();renderList();
+</script>
+</body>
+</html>
