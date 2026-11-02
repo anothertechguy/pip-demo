@@ -111,7 +111,7 @@ const INITIAL=[
 ];
 const PERSON_COMMON=t=>[
   {id:'nameId',label:'Name/ID',type:'text',req:true,sub:'Resident number only, never a name. The portal also asks for the name and date of birth; type those there.'},
-  {id:'gender',label:'Gender',type:'text',ph:'As listed in the portal'},
+  {id:'gender',label:'Gender',type:'select',opts:['Male','Female']},
   {id:'age',label:'Age at the time of occurrence',type:'num'},
   {id:'cognitive',label:'Provide cognitive status as relevant to this occurrence',type:'ta'},
   {id:'physical',label:'Provide physical status as relevant to this occurrence',type:'ta'}];
@@ -140,7 +140,7 @@ const ASSAILANT_BASE=t=>[
   // consumer (not on Neglect)
   ...(t==='neg'?[]:[
   {id:'nameId',label:'Name/ID',type:'text',showIf:isCon,sub:'Resident number only, never a name.'},
-  {id:'gender',label:'Gender',type:'text',showIf:isCon,ph:'As listed in the portal'},
+  {id:'gender',label:'Gender',type:'select',opts:['Male','Female'],showIf:isCon},
   {id:'age',label:'Age at the time of occurrence',type:'num',showIf:isCon},
   {id:'cognitive',label:'Cognitive status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:isCon},
   {id:'physical',label:'Physical status of the alleged assailant as it is relevant to this occurrence',type:'ta',showIf:isCon},
@@ -152,7 +152,7 @@ const ASSAILANT_BASE=t=>[
   {id:'other12Desc',label:'Provide the occurrence numbers, types, and dates',type:'ta',showIf:a=>isCon(a)&&a.other12==='Yes'},
   // staff / other service provider
   {id:'staffId',label:'ID/Name of the staff person involved',type:'text',showIf:isStaff},
-  ...(ABUSE.includes(t)?[{id:'sgender',label:'Gender',type:'text',showIf:isStaff,ph:'As listed in the portal'}]:[]),
+  ...(ABUSE.includes(t)?[{id:'sgender',label:'Gender',type:'select',opts:['Male','Female'],showIf:isStaff}]:[]),
   {id:'title',label:'Title',type:'text',showIf:isStaff},
   {id:'license',label:'License/certification number',type:'text',showIf:isStaff},
   {id:'bg',label:'Were background checks completed?',type:'yn',showIf:isStaffOnly},
