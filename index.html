@@ -565,7 +565,7 @@ function restore(d){try{
   Object.assign(SIGS,d.sigs||{});if(d.rvo>=0){const rs=document.querySelectorAll('input[name=rvo]');if(rs[d.rvo])rs[d.rvo].checked=true}
   show(Math.min(Math.max(1,d.step||1),TOTAL));return true}catch(e){console.error('restore failed',e);return false}}
 document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('click',e=>{if(e.target.closest('.wrap, #cal, #sigpad'))save()});
-if(TREND){const h=$('#trendHint');h.hidden=false;h.textContent='Started from an occurrence trend: '+TREND+' It goes into "What did the facility identify?" on screen 3 (and the resident number, if the trend names one).'}
+if(TREND){const h=$('#trendHint');h.hidden=false;h.textContent='Started from an occurrence trend: '+TREND+' It goes into "What did the facility identify?" on screen 3 when the concern has that box (and into the resident number, if the trend names one).'}
 let restored=false;try{const raw=localStorage.getItem(SKEY);if(raw)restored=restore(JSON.parse(raw))}catch(e){}
 if(restored)applyTrend();
 if(!restored){const t=new Date();$('#init').value=`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;applyType();applyCat();show(1)}

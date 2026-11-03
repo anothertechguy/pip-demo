@@ -292,9 +292,12 @@ function FINAL(t){return FINAL_EXTRA[t]?FINAL_EXTRA[t]():FINAL_BASE(t)}
 
 // ---------- storage ----------
 const KEY='hpb-occ-v1';let DB=[];
-function load(){try{const raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);migrate();return}}catch(e){}DB=JSON.parse(JSON.stringify(window.OCC_SEED||[]));save()}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);migrate();return}}catch(e){}DB=JSON.parse(JSON.stringify(window.OCC_SEED||[]));try{localStorage.setItem('hpb-occ-seedv',SEEDV)}catch(e){}save()}
 // A browser that saved the earlier sample set gets the new sample records and their locations added, without touching anything typed in.
-function migrate(){let changed=false;(window.OCC_SEED||[]).forEach(sd=>{const have=DB.find(o=>o.id===sd.id);if(!have){DB.push(JSON.parse(JSON.stringify(sd)));changed=true}else if(!have.ours&&sd.ours){have.ours={...sd.ours};changed=true}});DB.forEach(o=>{if(!o.ours){o.ours={};changed=true}});if(changed)save()}
+const SEEDV='2';// bump when the sample set changes; the merge below runs once per browser so a sample record that was deleted on purpose stays deleted
+function migrate(){let changed=false;let v='';try{v=localStorage.getItem('hpb-occ-seedv')||''}catch(e){}
+  if(v!==SEEDV){(window.OCC_SEED||[]).forEach(sd=>{const have=DB.find(o=>o.id===sd.id);if(!have){DB.push(JSON.parse(JSON.stringify(sd)));changed=true}else if(!have.ours&&sd.ours){have.ours={...sd.ours};changed=true}});try{localStorage.setItem('hpb-occ-seedv',SEEDV)}catch(e){}}
+  DB.forEach(o=>{if(!o.ours){o.ours={};changed=true}});if(changed)save()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

@@ -216,6 +216,8 @@ tr.file td{background:var(--soft);cursor:pointer}tr.file td:first-child::before{
 const localISO=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0');
 const TODAY=localISO(new Date());
 const rel=n=>{const x=new Date();x.setDate(x.getDate()+n);return localISO(x)};
+// n days after the first day of the rolling 12-month window: inside "last 12 months", outside "this calendar year" (shows the difference Sam asked for)
+const early=n=>{const x=new Date();x.setMonth(x.getMonth()-11);x.setDate(1+n);return localISO(x)};
 const days=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
 const fmt=d=>d?new Date(d.slice(0,10)+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'—';
 const fmtS=d=>d?new Date(d.slice(0,10)+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
@@ -240,8 +242,8 @@ const PLANS=[
   P('POC','Infection control, hand hygiene','F880','Nursing','ADON',HEI,rel(-83),{done:true,doneOn:rel(-40),docs:1}),
   P('POC','Pulmonary program documentation','','Therapy / Pulmonary Program','Pulmonary Program Coordinator',HEI,rel(-52),{next:rel(38)}),
   P('POC','Fall with injury, Resident #14','F689','Nursing','Director of Nursing',HEI,rel(-45),{next:rel(-14)}),
-  P('POC','Free from abuse and neglect','F600','Nursing','Administrator / NHA',HEI,rel(-20),{next:rel(10)}),
-  P('POC','Call light response time','F684','Nursing','Director of Nursing',HEI,rel(-340),{done:true,doneOn:rel(-300),docs:1}),
+  P('POC','Free from abuse and neglect','F600','Nursing','Administrator / NHA',HEI,rel(-20),{next:rel(5)}),
+  P('POC','Call light response time','F684','Nursing','Director of Nursing',HEI,early(10),{done:true,doneOn:early(50),docs:1}),
   P('POC','Resident council concerns','F565','Social Services','Social Services Director',HEI,rel(-400),{done:true,doneOn:rel(-360),docs:1}),
   // March survey: eight tags, one file. All closed on the same day.
   P('POC','Quality of care','F684','Nursing','Director of Nursing',HEI,rel(-225),{done:true,doneOn:rel(-190),docs:1,file:'March 2026 Annual Survey'}),
@@ -263,7 +265,7 @@ const PLANS=[
   P('PIP','Grievance process','','Social Services','Social Services Director',HEI,rel(-29),{next:rel(1)}),
   P('PIP','Medication administration, evening med pass','','Nursing','Director of Nursing',HEI,rel(-27),{next:rel(3)}),
   P('PIP','Activities timeliness','','Activities','Activity Director',HEI,rel(-13),{next:rel(17)}),
-  P('PIP','Staff meeting attendance','','Administration','Administrator / NHA',HEI,rel(-350),{done:true,doneOn:rel(-310),docs:1}),
+  P('PIP','Staff meeting attendance','','Administration','Administrator / NHA',HEI,early(7),{done:true,doneOn:early(45),docs:1}),
   // Building B (sample)
   P('POC','Pressure injury, wound care','F686','Nursing','Director of Nursing',BB,rel(-60),{next:rel(-29)}),
   P('POC','Dietary temperature logs','F812','Dietary','Dietary Manager',BB,rel(-100),{done:true,doneOn:rel(-65),docs:0}),
@@ -310,8 +312,8 @@ const OCC_OTHER=[
   O(BC,'equip',150,10,'Resident #C-08','Therapy gym',150,146)
 ];
 // Heights occurrences: the tracker's browser copy if there is one, else the seed. A copy saved before the sample set grew gets the newer sample records and their locations merged in for display only (the tracker page writes the merge when it is opened).
-function heightsOcc(){let L=[];try{const raw=localStorage.getItem('hpb-occ-v1');L=raw?JSON.parse(raw):JSON.parse(JSON.stringify(window.OCC_SEED||[]))}catch(e){L=JSON.parse(JSON.stringify(window.OCC_SEED||[]))}
-  (window.OCC_SEED||[]).forEach(sd=>{const o=L.find(x=>x.id===sd.id);if(!o)L.push(JSON.parse(JSON.stringify(sd)));else if(!o.ours&&sd.ours)o.ours={...sd.ours}});return L.map(o=>({...o,bld:HEI}))}
+function heightsOcc(){let L=[],merged=false;try{const raw=localStorage.getItem('hpb-occ-v1');L=raw?JSON.parse(raw):JSON.parse(JSON.stringify(window.OCC_SEED||[]));merged=localStorage.getItem('hpb-occ-seedv')==='2'}catch(e){L=JSON.parse(JSON.stringify(window.OCC_SEED||[]))}
+  if(!merged)(window.OCC_SEED||[]).forEach(sd=>{const o=L.find(x=>x.id===sd.id);if(!o)L.push(JSON.parse(JSON.stringify(sd)));else if(!o.ours&&sd.ours)o.ours={...sd.ours}});return L.map(o=>({...o,bld:HEI}))}
 function occAllBld(){return [...heightsOcc(),...OCC_OTHER]}
 const when=o=>(o.initial&&o.initial.occDT)||o.created||'';
 
@@ -339,7 +341,7 @@ function tile(v,l,go,cls){return `<button type="button" class="kpi ${cls||''}" d
 function kpis(id,t){const s=stats(t);const c=t.toLowerCase();document.getElementById(id).innerHTML=tile(`<span style="color:var(--${c})">${s.active}</span>`,`Active ${t}s`,`${c}:active`)+tile(s.due7,'Reviews due in 7 days',`${c}:due7`,'warn')+tile(s.over,'Reviews overdue',`${c}:over`,'crit')+tile(s.started,`Started, ${rangeLabel()}`,`${c}:started`)}
 
 // ---------- charts ----------
-function monthsIn(){const [a,b]=range();const out=[];const d=new Date(a.slice(0,7)+'-01T12:00:00');const end=b.slice(0,7);while(localISO(d).slice(0,7)<=end&&out.length<36){out.push(localISO(d).slice(0,7));d.setMonth(d.getMonth()+1)}return out.slice(-24)}
+function monthsIn(){const [a,b]=range();const out=[];const d=new Date(a.slice(0,7)+'-01T12:00:00');const end=b.slice(0,7);while(localISO(d).slice(0,7)<=end&&out.length<600){out.push(localISO(d).slice(0,7));d.setMonth(d.getMonth()+1)}monthsIn.clipped=out.length>24;return out.slice(-24)}
 function series(U){const M=monthsIn();const d=M.map(()=>0),p=M.map(()=>0);U.filter(u=>inRange(u.start)).forEach(u=>{const i=M.indexOf(u.start.slice(0,7));if(i<0)return;(u.done?d:p)[i]++});return {done:d,prog:p}}
 function monthChart(id,groups,H){const M=monthsIn();const W=1000,L=40,B=40,T=16;const max=Math.max(1,...M.map((_,i)=>Math.max(...groups.map(g=>g.done[i]+g.prog[i]))));const cw=(W-L-10)/M.length;const n=groups.length;const bw=cw*(n===1?0.5:0.3);const y=v=>H-B-(v/max)*(H-B-T);
   let s='';const step=max>12?Math.ceil(max/8):1;for(let g=0;g<=max;g+=step){s+=`<line x1="${L}" x2="${W-10}" y1="${y(g)}" y2="${y(g)}" stroke="#E3E9EE"/><text x="${L-8}" y="${y(g)+5}" font-size="13" text-anchor="end" fill="#7A8792">${g}</text>`}
@@ -411,7 +413,7 @@ function digestFor(b,Pd){const inP=(iso,a,z)=>{const d=(iso||'').slice(0,10);ret
   const tc={};cur.forEach(o=>{const t=TYPES[o.type]||'untyped';tc[t]=(tc[t]||0)+1});const types=Object.entries(tc).sort((a,b)=>b[1]-a[1]).map(([t,c])=>c>1?`${t} ×${c}`:t).join(', ');
   let s1=`${short(b)} had ${plural(n,'occurrence')} in ${Pd.label}`;if(pn){const pct=Math.round(Math.abs(n-pn)/pn*100);s1+=n>pn?`, up ${pct}% from ${pn} in ${Pd.plabel}`:n<pn?`, down ${pct}% from ${pn} in ${Pd.plabel}`:`, the same as ${Pd.plabel}`}else s1+=n?`, compared with none in ${Pd.plabel}`:`, and none in ${Pd.plabel}`;S.push(s1+(types?` (${types}).`:'.'));
   const sinceT=(()=>{const d=new Date(Pd.to+'T12:00:00');d.setMonth(d.getMonth()-12);return localISO(d)})();const tr=occTrends(occ.filter(o=>when(o).slice(0,10)<=Pd.to),TYPES,sinceT);S.push(tr.length?`Areas of concern (12 months to ${fmtS(Pd.to)}): ${tr.slice(0,4).map(r=>r.text).join('; ')}.`:`No repeat residents, staff, places or shifts in the 12 months to ${fmtS(Pd.to)}.`);
-  const PU=units('POC',b),QU=units('PIP',b);const sp=PU.filter(u=>inP(u.start,Pd.from,Pd.to)),sq=QU.filter(u=>inP(u.start,Pd.from,Pd.to));S.push(sp.length||sq.length?`Started in ${Pd.label}: ${plural(sp.length,'POC')} and ${plural(sq.length,'PIP')}${sp.some(u=>u.kind==='file')?' (including a survey file: '+sp.filter(u=>u.kind==='file').map(u=>u.title).join(', ')+')':''}.`:`No new POCs or PIPs were started in ${Pd.label}.`);
+  const PU=units('POC',b),QU=units('PIP',b);const sp=PU.filter(u=>inP(u.start,Pd.from,Pd.to)),sq=QU.filter(u=>inP(u.start,Pd.from,Pd.to));S.push(sp.length||sq.length?`Started in ${Pd.label}: ${[sp.length?plural(sp.length,'POC'):'',sq.length?plural(sq.length,'PIP'):''].filter(Boolean).join(' and ')}${sp.some(u=>u.kind==='file')?' (including a survey file: '+sp.filter(u=>u.kind==='file').map(u=>u.title).join(', ')+')':''}.`:`No new POCs or PIPs were started in ${Pd.label}.`);
   const closed=[...PU,...QU].filter(u=>u.done&&inP(u.doneOn,Pd.from,Pd.to));const noDocs=closed.filter(u=>!u.docs);const cp=closed.filter(u=>u.t==='POC').length,cq=closed.length-cp;
   if(!closed.length)S.push(`No POCs or PIPs were closed in ${Pd.label}.`);else{let c=`Closed ${[cp?plural(cp,'POC'):'',cq?plural(cq,'PIP'):''].filter(Boolean).join(' and ')} in ${Pd.label} (${closed.map(u=>u.title).join('; ')})`;
     if(!noDocs.length)c+=', each with supporting documentation attached.';else if(noDocs.length===closed.length)c+=closed.length===1?', though no supporting documentation was attached.':', though none of them has supporting documentation attached.';else c+=`, though ${noDocs.length} of them (${noDocs.map(u=>u.title).join('; ')}) ${noDocs.length===1?'has':'have'} no supporting documentation attached.`;S.push(c)}
@@ -434,7 +436,7 @@ function renderAll(){const corp=F.bld==='all';document.getElementById('facility'
   document.getElementById('fNote').textContent=`${scopeText()}. The date range applies to when a plan was started or an occurrence happened; active, due and overdue are as of today. Department does not apply to occurrences.`;
   document.getElementById('nPoc').textContent=stats('POC').active+' open';document.getElementById('nPip').textContent=stats('PIP').active+' open';
   if(!corp){kpis('kpiPoc','POC');kpis('kpiPip','PIP');
-    ['Poc','Pip'].forEach(x=>{const t=x.toUpperCase();document.getElementById('subMonth'+x).textContent=`Darker = completed, lighter = still in progress. ${t}s started in the ${rangeLabel()}; a survey file counts once.`;document.getElementById('subDept'+x).textContent=`Standalone ${t}s started in the ${rangeLabel()}. Red flag when one department is at least double the next highest.`});
+    ['Poc','Pip'].forEach(x=>{const t=x.toUpperCase();document.getElementById('subMonth'+x).textContent=`Darker = completed, lighter = still in progress. ${t}s started in the ${rangeLabel()}; a survey file counts once.${monthsIn.clipped?' Chart shows the last 24 months of the range.':''}`;document.getElementById('subDept'+x).textContent=`Standalone ${t}s started in the ${rangeLabel()}. Red flag when one department is at least double the next highest.`});
     monthChart('monthPoc',[{...series(units('POC')),c1:'#1E9E88',c2:'#A8DED2'}],260);monthChart('monthPip',[{...series(units('PIP')),c1:'#3B6FB6',c2:'#BBD0EC'}],260);
     deptChart('deptPoc','POC','fileNotePoc');deptChart('deptPip','PIP','fileNotePip');dups('dupPoc','POC','subDupPoc');dups('dupPip','PIP','subDupPip');reviews('revPoc','POC');reviews('revPip','PIP');
     document.getElementById('occLink').hidden=F.bld!==HEI}
