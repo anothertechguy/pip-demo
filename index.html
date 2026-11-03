@@ -126,7 +126,7 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
   <section class="step on" data-step="1">
     <h1>What kind of plan is this?</h1>
     <p class="lead">Pick one. You can change it later.</p>
-    <div class="callout"><b>Sam, from Sean:</b>First screen is now POC, PIP or Occurrence, like you described. POC keeps the concern dropdown and everything after it, and there is a new "Custom" concern at the bottom of that list with blank, generic boxes. PIP only asks for the department, a person (optional) and a citation (optional), then goes on with general boxes instead of the concern wording. Occurrence opens the new occurrence tracker, built from the state portal's own questions.</div>
+    <div class="callout"><b>Sam, from Sean:</b>First screen is now POC, PIP or Occurrence, like you described. POC keeps the concern dropdown and everything after it, and there is a new "Custom" concern at the bottom of that list with blank, generic boxes. PIP only asks for the department, a person (optional) and a citation (optional), then goes on with general boxes instead of the concern wording. Occurrence opens the new occurrence tracker, built from the state portal's own questions. New this round: "Part of a survey or file?" on the POC path, so a survey's tags live in one file instead of flooding one month.</div>
     <div class="cards three" id="typeCards">
       <button type="button" class="card on" data-t="POC"><b>Plan of Correction</b><span>POC · specific to a policy or regulation</span></button>
       <button type="button" class="card" data-t="PIP"><b>Performance Improvement Plan</b><span>PIP · specific to a person or department</span></button>
@@ -138,6 +138,8 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:0;width:30px;height:
       <div class="f pip" hidden><label>Person (optional)</label><input id="person" placeholder="Name or position, if this is about one person"></div>
     </div>
     <div class="f pip" hidden><label>Citation (optional)</label><input id="cite" list="tagList" placeholder="Start typing a tag number or a word, e.g. F689 or falls" autocomplete="off"><datalist id="tagList"></datalist><p class="src" id="citeTxt" style="margin-top:8px"></p></div>
+    <div class="f poc"><label>Part of a survey or file? (optional)</label><input id="pfile" list="fileList" placeholder="e.g. March 2026 Annual Survey. Leave blank for a standalone POC." autocomplete="off"><datalist id="fileList"><option>March 2026 Annual Survey</option><option>October 2026 Complaint Survey</option></datalist><p class="src" style="margin-top:8px">One file holds every POC from one survey. The dashboard counts the file as one item and lists the POCs inside it, so a 20-tag survey does not show up as 20 plans in one month.</p></div>
+    <div class="hint" id="trendHint" hidden></div>
   </section>
 
   <!-- 2 -->
@@ -403,7 +405,9 @@ function setTag(code){renderTags('');$('#tagSearch').value='';$('#ftag').value=c
 $('#typeCards').addEventListener('click',e=>{const c=e.target.closest('.card');if(!c)return;if(c.dataset.t==='OCC'){location.href='occurrences.html';return}type=c.dataset.t;$$('#typeCards .card').forEach(x=>x.classList.toggle('on',x===c));applyType();applyCat();show(step)});
 function applyType(){$$('.poc').forEach(el=>el.hidden=type!=='POC');$$('.pip').forEach(el=>el.hidden=type!=='PIP')}
 function srcLine(c,key){const el=$('#src-'+key);if(!el)return;if(c.generic&&key!=='mon'){el.textContent=type==='PIP'?'General starting point for a PIP. Nothing here came from a document; change anything.':'Generic starting point for a custom plan. Nothing here came from a document; change anything.';return}if(key==='mon'){el.textContent='Defaults set from your Sep 26 note: weekly for 30 days, then reviewed monthly at QAPI for 3 months. This grey line is demo-only.';return}el.textContent=(c.drafted.includes(key)?'Prefilled with draft wording we wrote (none of your documents cover this).':'Prefilled from your file: '+c.src.replace(' .docx','.docx')+'.')+' This grey line is demo-only so you can see where the wording came from; it will not show in the real app.'}
-function renderAsks(c){$('#asks').innerHTML=(c.asks||[]).map(a=>`<div class="f"><label>${esc(a.label)}</label>${a.type==='select'?`<select data-ask="${esc(a.k)}"><option value="">Choose…</option>${a.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input type="${a.type==='date'?'date':'text'}" data-ask="${esc(a.k)}" placeholder="${esc(a.ph||'')}">`}</div>`).join('')}
+const TREND=(new URLSearchParams(location.search).get('trend')||'').trim();
+function applyTrend(){if(!TREND)return;const el=$('#asks [data-ask="identification"]');if(el&&!el.value)el.value=TREND;const m=TREND.match(/^Resident #(\d+)\b/);if(m&&!$('#resid').value)$('#resid').value=m[1]}
+function renderAsks(c){$('#asks').innerHTML=(c.asks||[]).map(a=>`<div class="f"><label>${esc(a.label)}</label>${a.type==='select'?`<select data-ask="${esc(a.k)}"><option value="">Choose…</option>${a.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:`<input type="${a.type==='date'?'date':'text'}" data-ask="${esc(a.k)}" placeholder="${esc(a.ph||'')}">`}</div>`).join('');applyTrend()}
 function residentPhrase(){const nums=($('#resid').value.match(/\d+/g)||[]);if(!nums.length)return null;if(nums.length===1)return 'Resident #'+nums[0];return 'Residents '+nums.slice(0,-1).map(n=>'#'+n).join(', ')+' and #'+nums[nums.length-1]}
 function answers(){const a={};const ev=$('#event').value;if(ev)a['event date']=fmt(ev);const r=residentPhrase();if(r)a['resident']=r;
   $$('#asks [data-ask]').forEach(el=>{let v=el.value.trim();if(!v)return;if(el.type==='date')v=fmt(v);const ask=(cur().asks||[]).find(x=>x.k===el.dataset.ask)||{};if(el.dataset.ask==='identification'){v=v.charAt(0).toUpperCase()+v.slice(1)}if(el.dataset.ask==='identification'||ask.tail){if(!/[.!?]$/.test(v))v+='.'}a[el.dataset.ask]=v});return a}
@@ -497,6 +501,7 @@ function finish(){const v=id=>{const el=$('#'+id);return (el.classList.contains(
   let h=`<h1>${esc(v('title')||'Untitled plan')}</h1><div class="meta"><b>Facility</b><span>Heights Care and Rehabilitation</span><b>Department</b><span>${esc(v('dept'))}</span>`;
   if(!isPOC&&v('person'))h+=`<b>Person</b><span>${esc(v('person'))}</span>`;
   if(tag)h+=`<b>Deficiency tag</b><span>${esc(tag.tag)} – ${esc(tag.title)}</span>`;
+  if(isPOC&&v('pfile'))h+=`<b>File</b><span>${esc(v('pfile'))}</span>`;
   h+=`<b>Regulatory focus</b><span>${focus.length?focus.map(esc).join('; '):'—'}</span><b>Date initiated</b><span>${fmt(v('init'))||'—'}</span>${v('event')?`<b>Event date</b><span>${fmt(v('event'))}</span>`:''}<b>Prepared by</b><span>${esc(v('prep'))}</span>${residentPhrase()?`<b>Resident</b><span>${esc(residentPhrase())}</span>`:isPOC?`<b>Resident</b><span><span class="ph">[resident #]</span></span>`:''}<b>30-day review</b><span>${due}</span><b>Review dates</b><span>${r3[0]} · ${r3[1]} · ${r3[2]}</span></div>`;
   if(isPOC)h+=`<p>Heights Care and Rehabilitation submits this Plan of Correction as a credible allegation of compliance. This Plan of Correction is not an admission, but a description of corrective actions taken and systemic measures implemented to ensure ongoing compliance with regulatory standards.</p>`;
   h+=`<h2>${isPOC?'Deficient practice identified':'Problem statement'}${E(4)}</h2><p>${hl(v('problem'))}</p>`;
@@ -560,7 +565,9 @@ function restore(d){try{
   Object.assign(SIGS,d.sigs||{});if(d.rvo>=0){const rs=document.querySelectorAll('input[name=rvo]');if(rs[d.rvo])rs[d.rvo].checked=true}
   show(Math.min(Math.max(1,d.step||1),TOTAL));return true}catch(e){console.error('restore failed',e);return false}}
 document.addEventListener('input',save);document.addEventListener('change',save);document.addEventListener('click',e=>{if(e.target.closest('.wrap, #cal, #sigpad'))save()});
+if(TREND){const h=$('#trendHint');h.hidden=false;h.textContent='Started from an occurrence trend: '+TREND+' It goes into "What did the facility identify?" on screen 3 (and the resident number, if the trend names one).'}
 let restored=false;try{const raw=localStorage.getItem(SKEY);if(raw)restored=restore(JSON.parse(raw))}catch(e){}
+if(restored)applyTrend();
 if(!restored){const t=new Date();$('#init').value=`${t.getFullYear()}-${pad(t.getMonth()+1)}-${pad(t.getDate())}`;applyType();applyCat();show(1)}
 </script>
 </body>

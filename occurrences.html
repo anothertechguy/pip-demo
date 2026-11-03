@@ -38,6 +38,8 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 .radio{display:flex;gap:10px;flex-wrap:wrap}.radio label{display:flex;gap:8px;align-items:center;border:2px solid var(--line);border-radius:12px;padding:9px 14px;cursor:pointer;font-weight:700;font-size:15px}.radio label:has(input:checked){border-color:var(--brand);background:var(--brand-soft)}.radio input{width:18px;height:18px;accent-color:var(--brand)}
 .person{border:2px dashed var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;background:var(--soft)}.person h4{margin:0 0 10px;font-size:16px;font-weight:800;display:flex;justify-content:space-between}.person .x{border:0;background:none;color:var(--rose-ink);font-weight:800;cursor:pointer}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fillbar{background:var(--sun);border:2px solid #F1DFA0;color:#5C4400;border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:space-between}.fillbar .btn{font-size:14px;padding:6px 12px}
+.trend{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}.trend:last-child{border:0}.trend b{font-weight:800}.trend .d{display:block;font-size:14px;color:var(--muted);font-weight:600}.trend .n{display:inline-block;min-width:34px;text-align:center;background:var(--rose);color:var(--rose-ink);font-weight:800;border-radius:99px;padding:3px 10px;margin-right:10px}.trend a{white-space:nowrap}
 .bar{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin:18px 0}
 .meta{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px;margin-bottom:14px}.meta b{font-weight:800}
 .todo{border:2px solid var(--line);border-radius:var(--r);padding:14px 18px;margin-bottom:16px}.todo.ok{background:var(--brand-soft);border-color:var(--brand)}.todo.no{background:var(--rose);border-color:#F3C3C3;color:var(--rose-ink)}.todo ul{margin:6px 0 0;padding-left:20px}
@@ -59,7 +61,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <button type="button" class="btn primary" id="newBtn">+ New occurrence</button>
   </div>
 
-  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for your five categories, plus the five others Heights has filed before (Misappropriation of Property, Equipment Malfunction, Brain Injury, Diverted Drugs, Death). Fill it here when it happens, then "Copy for the portal" gives you the answers in the portal's order to paste in one by one, or print to PDF. Resident names and dates of birth are kept out on purpose: residents are numbers only in our system, and you add the name and birth date in the portal when you paste.</div>
+  <div class="callout" id="introCallout"><b>Sam, from Sean:</b>Built from the state portal (COHFI) with your login, read-only. Every question, option and "only shows if you answered yes" rule below is copied from the portal's initial report, final report, consumer and alleged-assailant forms for your five categories, plus the five others Heights has filed before. Fill it here when it happens, then "Copy for the portal" when you have time. New this round: "Areas to be aware of" (residents, staff IDs, locations, shifts and types that repeat in the last 12 months, each with a Start-a-POC link), a "Where did it happen?" box on the initial report that is ours and never copied out (the portal never asks it), and a resident autofill: type a resident number that was in an earlier occurrence and the card offers to fill gender, age, cognitive and physical status from it. No birthday or name, since we never store those. Residents are numbers only.</div>
 
   <!-- LIST -->
   <div id="vList">
@@ -67,6 +69,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <p class="lead">Everything logged here, newest first. Click a row to open it.</p>
     <div class="kpis" id="kpis"></div>
     <div class="chips" id="typeChips"></div>
+    <div class="sec" id="trendBox"></div>
     <div class="panel"><table id="list"></table></div>
     <p class="muted">Final report rule from the portal: due 5 calendar days after the initial report is submitted there, before 11:59 PM on day 5. "Entered in portal" dates are what you record once you've copied it over.</p>
   </div>
@@ -289,7 +292,9 @@ function FINAL(t){return FINAL_EXTRA[t]?FINAL_EXTRA[t]():FINAL_BASE(t)}
 
 // ---------- storage ----------
 const KEY='hpb-occ-v1';let DB=[];
-function load(){try{const raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);return}}catch(e){}DB=JSON.parse(JSON.stringify(window.OCC_SEED||[]));save()}
+function load(){try{const raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);migrate();return}}catch(e){}DB=JSON.parse(JSON.stringify(window.OCC_SEED||[]));save()}
+// A browser that saved the earlier sample set gets the new sample records and their locations added, without touching anything typed in.
+function migrate(){let changed=false;(window.OCC_SEED||[]).forEach(sd=>{const have=DB.find(o=>o.id===sd.id);if(!have){DB.push(JSON.parse(JSON.stringify(sd)));changed=true}else if(!have.ours&&sd.ours){have.ours={...sd.ours};changed=true}});DB.forEach(o=>{if(!o.ours){o.ours={};changed=true}});if(changed)save()}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -304,19 +309,25 @@ function finalDue(o){return o.portal.initialEntered?(()=>{const x=new Date(o.por
 function status(o){if(o.portal.finalEntered)return {k:'done',t:'Complete · in portal'};if(!o.portal.initialEntered)return {k:'draft',t:'Initial not in portal yet'};const due=finalDue(o);const n=days(today(),due);if(n<0)return {k:'over',t:`Final overdue ${-n}d`};if(n<=2)return {k:'due',t:`Final due in ${n}d`};return {k:'ok',t:`Final due ${fmtD(due)}`}}
 
 // ---------- list view ----------
-function renderList(){const yr=new Date().getFullYear();const thisYear=DB.filter(o=>(o.initial.occDT||o.created).startsWith(String(yr)));
+const since12=()=>{const x=new Date();x.setMonth(x.getMonth()-11);x.setDate(1);return localISO(x)};
+function renderList(){const since=since12();const thisYear=DB.filter(o=>(o.initial.occDT||o.created).slice(0,10)>=since);
   const open=DB.filter(o=>!o.portal.finalEntered);const over=open.filter(o=>status(o).k==='over');const notIn=open.filter(o=>!o.portal.initialEntered);
-  $('#kpis').innerHTML=`<div class="kpi"><div class="v" style="color:var(--occ)">${thisYear.length}</div><div class="l">Occurrences this year</div></div><div class="kpi warn"><div class="v">${notIn.length}</div><div class="l">Initial not in portal yet</div></div><div class="kpi crit"><div class="v">${over.length}</div><div class="l">Final reports overdue</div></div><div class="kpi"><div class="v">${open.length}</div><div class="l">Open (final not in portal)</div></div>`;
+  $('#kpis').innerHTML=`<div class="kpi"><div class="v" style="color:var(--occ)">${thisYear.length}</div><div class="l">Occurrences, last 12 months</div></div><div class="kpi warn"><div class="v">${notIn.length}</div><div class="l">Initial not in portal yet</div></div><div class="kpi crit"><div class="v">${over.length}</div><div class="l">Final reports overdue</div></div><div class="kpi"><div class="v">${open.length}</div><div class="l">Open (final not in portal)</div></div>`;
+  renderTrends(since);
   $('#typeChips').innerHTML=ALL.map(t=>`<span class="chip">${TYPES[t]} <b>${thisYear.filter(o=>o.type===t).length}</b></span>`).join('');
   const L=DB.slice().sort((a,b)=>(b.initial.occDT||b.created)<(a.initial.occDT||a.created)?-1:1);
   $('#list').innerHTML='<tr><th>Occurrence</th><th>Type</th><th>Resident(s)</th><th>Portal case ID</th><th>Status</th></tr>'+(L.length?L.map(o=>{const s=status(o);return `<tr class="row" data-id="${o.id}"><td>${fmtDT(o.initial.occDT)||fmtD(o.created)}</td><td>${TYPES[o.type]}</td><td>${esc((o.victims||[]).map(v=>v.nameId).filter(Boolean).join(', ')||'—')}</td><td>${esc(o.portal.caseId||'—')}</td><td><span class="st ${s.k}">${s.t}</span></td></tr>`}).join(''):'<tr><td colspan="5">Nothing logged yet. Click "+ New occurrence".</td></tr>')}
 $('#list').addEventListener('click',e=>{const r=e.target.closest('tr.row');if(r)openDetail(r.dataset.id)});
+function renderTrends(since){const rows=window.occTrends?occTrends(DB,TYPES,since):[];const box=$('#trendBox');
+  box.innerHTML=`<h3>Areas to be aware of <span class="muted">Repeats since ${fmtD(since)} · residents, staff, places, shifts, types</span></h3>`+(rows.length?rows.map(r=>`<div class="trend"><span><span class="n">${r.n}</span><b>${esc(r.text)}</b><span class="d">${esc(r.detail)}</span></span><span><button type="button" class="btn sm" data-show="${esc(r.ids.join(','))}">Show them</button> <a class="btn sm primary" href="index.html?trend=${encodeURIComponent(r.text+' in the last 12 months ('+r.detail+').')}">Start a POC →</a></span></div>`).join(''):'<p class="muted" style="margin:0">Nothing repeats yet. A resident, staff ID or place in two or more occurrences, or a shift or type in three or more, shows up here.</p>');
+  box.onclick=e=>{const b=e.target.closest('[data-show]');if(!b)return;const ids=b.dataset.show.split(',');$$('#list tr.row').forEach(r=>{const on=ids.includes(r.dataset.id);r.style.background=on?'var(--sun)':''});$('#list').scrollIntoView({behavior:'smooth'});toast(`Highlighted ${ids.length} occurrence${ids.length===1?'':'s'}.`)}}
 
 // ---------- detail ----------
 let cur=null,tab='initial';
 function openDetail(id){cur=DB.find(o=>o.id===id);tab='initial';$('#vList').hidden=true;$('#vDetail').hidden=false;$('#introCallout').hidden=true;renderDetail();window.scrollTo({top:0})}
 function closeDetail(){cur=null;$('#vDetail').hidden=true;$('#vList').hidden=false;$('#introCallout').hidden=false;renderList();window.scrollTo({top:0})}
 $('#backBtn').onclick=closeDetail;$('#navList').onclick=closeDetail;
+window.addEventListener('load',()=>{const id=decodeURIComponent(location.hash.slice(1));if(id&&DB.some(o=>o.id===id))openDetail(id)});
 $('#newBtn').onclick=()=>{const o={id:'occ-'+Date.now(),type:'',created:today(),portal:{caseId:'',initialEntered:'',finalEntered:''},initial:{reportedBy:'Samuel Krommenhoek'},victims:[],assailants:[],final:{}};DB.unshift(o);save();openDetail(o.id)};
 $('#deleteBtn').onclick=()=>{if(!cur)return;if(!confirm('Delete this occurrence from the tracker? (Nothing in the state portal is touched.)'))return;DB=DB.filter(o=>o!==cur);save();closeDetail();toast('Deleted.')};
 $$('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;renderDetail()});
@@ -345,16 +356,30 @@ function bindScope(root,scope,fields,onChange){root.addEventListener('input',h);
     save();applyShow(root,fields,scope);if(onChange)onChange()}}
 function applyShow(root,fields,scope,ctx){fields.forEach(f=>{const el=root.querySelector(`[data-fid="${f.id}"]`);if(el&&f.showIf)el.hidden=!f.showIf(scope,ctx||cur)})}
 
-function renderInitial(){const o=cur;const box=$('#tInitial');
+// Our own tracking fields (not portal questions). Kept out of INITIAL so the copy view and the portal checker never see them.
+const OURS=[{id:'location',label:'Where did it happen?',type:'select',opts:window.OCC_LOCATIONS||['Other'],sub:'Feeds "Areas to be aware of": the same place in two or more occurrences gets flagged.'},{id:'locOther',label:'Describe the location',type:'text',showIf:a=>a.location==='Other'},{id:'unit',label:'Unit / hall (optional)',type:'text',ph:'e.g. 100 hall'}];
+function renderInitial(){const o=cur;o.ours=o.ours||{};const box=$('#tInitial');
   box.innerHTML=`<div class="sec"><h3>Initial report <span class="muted">What the portal asks first</span></h3>
     <div class="f"><label>Occurrence Type: <span class="req">*</span></label><select id="occType"><option value="">Please select:</option>${ALL.map(t=>`<option value="${t}"${o.type===t?' selected':''}>${TYPES[t]}</option>`).join('')}</select><p class="sub">The portal lists 15 types. These are the ten Heights has actually filed, each copied from a real record. The other five (Burns, Equipment Misuse, anesthesia and transfusion reactions, Spinal Cord Injury) are left off until there is a record to copy from.</p></div>
     <div id="initFields">${INITIAL.map(f=>fieldHTML(f,o.initial,'i')).join('')}</div></div>
+    <div class="sec"><h3>Where did it happen? <span class="muted">Ours, for trends. Not a portal question, never copied out.</span></h3><div id="oursFields">${OURS.map(f=>fieldHTML(f,o.ours,'u')).join('')}</div></div>
     <div class="bar"><span class="muted">Saves as you type.</span><button type="button" class="btn primary" id="toFinal">Next: final report →</button></div>`;
   $('#occType').onchange=e=>{o.type=e.target.value;save();renderDetail()};
   const root=$('#initFields');applyShow(root,INITIAL,o.initial);bindScope(root,o.initial,INITIAL);
+  const ur=$('#oursFields');applyShow(ur,OURS,o.ours);bindScope(ur,o.ours,OURS);
   $('#toFinal').onclick=()=>{tab='final';renderDetail()}}
 
-function personCard(list,i,fields,label,prefix){const p=list[i];return `<div class="person" data-i="${i}"><h4>${label} ${i+1}<button type="button" class="x" data-rm="${i}">Remove</button></h4>${fields.map(f=>fieldHTML(f,p,prefix+i)).join('')}</div>`}
+function personCard(list,i,fields,label,prefix){const p=list[i];return `<div class="person" data-i="${i}"><h4>${label} ${i+1}<button type="button" class="x" data-rm="${i}">Remove</button></h4><div class="fillbar" data-fillbar hidden></div>${fields.map(f=>fieldHTML(f,p,prefix+i)).join('')}</div>`}
+// Resident autofill: the same resident number in an earlier occurrence offers its resident-level answers. Names and birth dates are never stored, so they can never be filled.
+const RES_FIELDS=['gender','age','cognitive','physical','cogPhys','hist','histOther','histBeh','behDesc','carePlan','carePlanSum','elopeHist','safetyPlan','safetyPlanDesc','respSelf','fallsHist','safetyInt','medHist'];
+const isStaffRel=a=>a.rel==='Staff member'||a.rel==='Other service provider';
+function priorOf(me){const k=occResKey(me.nameId);if(!k||(me.rel&&isStaffRel(me)))return [];const out=[];DB.forEach(o=>{if(o===cur)return;[...(o.victims||[]),...(o.assailants||[]).filter(a=>!isStaffRel(a))].forEach(p=>{if(occResKey(p.nameId)===k)out.push({p,o})})});return out.sort((a,b)=>((b.o.initial.occDT||b.o.created)<(a.o.initial.occDT||a.o.created)?-1:1))}
+function offerFill(card,me,fields){const bar=card.querySelector('[data-fillbar]');if(!bar)return;const prior=priorOf(me);if(!prior.length){bar.hidden=true;return}
+  const src=prior[0];const ids=fields.map(f=>f.id).filter(id=>RES_FIELDS.includes(id));const canFill=ids.filter(id=>{const v=src.p[id];const have=me[id];const empty=x=>x==null||x===''||(Array.isArray(x)&&!x.length);return !empty(v)&&empty(have)});
+  const k=occResKey(me.nameId);const when=`${TYPES[src.o.type]||'occurrence'}, ${fmtD(src.o.initial.occDT||src.o.created)}`;
+  bar.hidden=false;bar.innerHTML=`<span><b>${esc(k)}</b> was in ${prior.length} earlier occurrence${prior.length===1?'':'s'} (latest: ${esc(when)}).${canFill.length?' Fill the blank resident fields from that record?':' Nothing left to fill from it.'}</span>`+(canFill.length?`<span><button type="button" class="btn" data-fill>Fill ${canFill.length} field${canFill.length===1?'':'s'}</button> <button type="button" class="btn" data-nofill>No</button></span>`:'');
+  bar.querySelectorAll('[data-fill]').forEach(b=>b.onclick=()=>{canFill.forEach(id=>{me[id]=Array.isArray(src.p[id])?[...src.p[id]]:src.p[id]});save();renderFinal();toast(`Filled ${canFill.length} field${canFill.length===1?'':'s'} from the ${when} record. Check the age.`)});
+  bar.querySelectorAll('[data-nofill]').forEach(b=>b.onclick=()=>{bar.hidden=true})}
 function renderFinal(){const o=cur;const box=$('#tFinal');if(!o.type){box.innerHTML='<div class="todo no">Pick the occurrence type on the initial report first; the final report questions depend on it.</div>';return}
   const t=o.type;const vf=VICTIM(t),af=ASSAILANT(t);const secs=FINAL(t);
   let h=`<div class="sec" id="secV"><h3>${ABUSE.includes(t)?'Victim(s)':'Consumer(s)'} <button type="button" class="btn sm" id="addV">+ Add</button></h3><div id="vList2">${o.victims.map((p,i)=>personCard(o.victims,i,vf,Vc(t),'v')).join('')||'<p class="muted">None added yet.</p>'}</div></div>`;
@@ -363,7 +388,7 @@ function renderFinal(){const o=cur;const box=$('#tFinal');if(!o.type){box.innerH
   h+=`<div class="bar"><span class="muted">Saves as you type. Questions that only apply to a yes/no answer appear when you answer it, same as the portal.</span><button type="button" class="btn primary" id="toPortal">Next: portal status →</button></div>`;
   box.innerHTML=h;
   // people
-  const wireList=(listEl,list,fields,prefix)=>{listEl.querySelectorAll('.person').forEach(card=>{const i=+card.dataset.i;applyShow(card,fields,list[i]);bindScope(card,list[i],fields,()=>{secs.forEach((s,si)=>applyShow(box.querySelector(`[data-sec="${si}"]`),s.fields,o.final))})});
+  const wireList=(listEl,list,fields,prefix)=>{listEl.querySelectorAll('.person').forEach(card=>{const i=+card.dataset.i;applyShow(card,fields,list[i]);bindScope(card,list[i],fields,()=>{secs.forEach((s,si)=>applyShow(box.querySelector(`[data-sec="${si}"]`),s.fields,o.final))});offerFill(card,list[i],fields);card.addEventListener('change',e=>{if(e.target.dataset.f==='nameId'||e.target.dataset.f==='rel')offerFill(card,list[i],fields)})});
     listEl.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(b){list.splice(+b.dataset.rm,1);save();renderFinal()}})};
   wireList($('#vList2'),o.victims,vf,'v');$('#addV').onclick=()=>{o.victims.push({});save();renderFinal()};
   if(AN.includes(t)){wireList($('#aList2'),o.assailants,af,'a');$('#addA').onclick=()=>{o.assailants.push({});save();renderFinal()}}
