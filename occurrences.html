@@ -44,6 +44,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
 .copyview{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13.5px;white-space:pre-wrap;border:2px solid var(--line);border-radius:var(--r);padding:16px 18px;background:#fff;line-height:1.5}
 .copyview h3{font-family:var(--font);font-size:17px;margin:18px 0 8px;display:flex;justify-content:space-between;align-items:center}.copyview h3:first-child{margin-top:0}
 .copyview .q{font-weight:800;color:var(--ink)}.copyview .a{color:#1b2a6b;margin-bottom:10px}.copyview .a.empty{color:var(--rose-ink)}
+.copyview .ar{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}.copyview .ar .a{flex:1;min-width:0;margin-bottom:0}.copyview .ar button{flex:none;font-family:var(--font)}.copyview .ar button.cp{min-width:62px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:99px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}.toast.show{opacity:1}
 .muted{color:var(--muted);font-size:14px}
 @media print{body *{visibility:hidden}#copyview,#copyview *{visibility:visible}#copyview{position:absolute;left:0;top:0;width:100%;border:0}#copyview button{display:none!important}}
@@ -79,7 +80,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font
     <div id="tInitial"></div>
     <div id="tFinal" hidden></div>
     <div id="tPortal" hidden></div>
-    <div id="tCopy" hidden><div class="todo" id="copyTodo"></div><div class="bar"><span class="muted">Each section has its own copy button; "Copy everything" puts the whole thing on your clipboard in portal order.</span><button type="button" class="btn sm primary" id="copyAll">Copy everything</button></div><div class="copyview" id="copyview"></div></div>
+    <div id="tCopy" hidden><div class="todo" id="copyTodo"></div><div class="bar"><span class="muted">Every answer has its own Copy button, so you can paste it straight into the matching portal field. "Copy section" grabs a whole section; "Copy everything" puts the whole thing on your clipboard in portal order.</span><button type="button" class="btn sm primary" id="copyAll">Copy everything</button></div><div class="copyview" id="copyview"></div></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -388,8 +389,8 @@ function copyBlocks(){const o=cur;const blocks=[];const missing=[];
   return {blocks,missing}}
 function blockText(b){return b.name.toUpperCase()+'\n'+b.lines.map(l=>l.q+'\n'+(l.a||'(blank)')).join('\n\n')}
 function renderCopy(){const {blocks,missing}=copyBlocks();const td=$('#copyTodo');td.className='todo '+(missing.length?'no':'ok');td.innerHTML=missing.length?`<b>${missing.length} required portal field${missing.length===1?'':'s'} still blank:</b><ul>${missing.map(m=>`<li>${esc(m)}</li>`).join('')}</ul>`:'<b>Every required portal field has an answer.</b> Optional ones left blank show as (blank) below.';
-  $('#copyview').innerHTML=`<h3>${esc(TYPES[cur.type]||'Occurrence')} · Heights Care and Rehabilitation · logged ${fmtD(cur.created)}</h3><div class="a" style="color:var(--ink2)">Residents are numbers here. The portal will also ask for each resident's name and date of birth; type those straight into the portal.</div>`+blocks.map((b,i)=>`<h3>${esc(b.name)}<button type="button" class="btn sm" data-copy="${i}">Copy section</button></h3>`+b.lines.map(l=>`<div class="q">${esc(l.q)}</div><div class="a${l.a?'':' empty'}">${esc(l.a||'(blank)')}</div>`).join('')).join('');
-  $('#copyview').onclick=e=>{const b=e.target.closest('[data-copy]');if(b)copyText(blockText(blocks[+b.dataset.copy]),'Section copied.')};
+  $('#copyview').innerHTML=`<h3>${esc(TYPES[cur.type]||'Occurrence')} · Heights Care and Rehabilitation · logged ${fmtD(cur.created)}</h3><div class="a" style="color:var(--ink2)">Residents are numbers here. The portal will also ask for each resident's name and date of birth; type those straight into the portal.</div>`+blocks.map((b,i)=>`<h3>${esc(b.name)}<button type="button" class="btn sm" data-copy="${i}">Copy section</button></h3>`+b.lines.map((l,j)=>`<div class="q">${esc(l.q)}</div><div class="ar"><div class="a${l.a?'':' empty'}">${esc(l.a||'(blank)')}</div>${l.a?`<button type="button" class="btn sm cp" data-ans="${i}:${j}" title="Copy just this answer">Copy</button>`:''}</div>`).join('')).join('');
+  $('#copyview').onclick=e=>{const b=e.target.closest('[data-copy]');if(b)return copyText(blockText(blocks[+b.dataset.copy]),'Section copied.');const a=e.target.closest('[data-ans]');if(a){const [i,j]=a.dataset.ans.split(':').map(Number);copyText(blocks[i].lines[j].a,'Answer copied: '+blocks[i].lines[j].q.replace(/:$/,''))}};
   $('#copyAll').onclick=()=>copyText(blocks.map(blockText).join('\n\n\n'),'Everything copied, in portal order.')}
 function copyText(t,msg){(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast(msg)).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast(msg)}catch(e){toast('Copy blocked here; select the text and copy by hand.')}ta.remove()})}
 
